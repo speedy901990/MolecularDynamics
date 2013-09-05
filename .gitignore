@@ -11,3 +11,6 @@
 *.lai
 *.la
 *.a
+
+# All netbeans files
+nbproject/*
