@@ -13,6 +13,5 @@
 *.a
 
 # All netbeans files
-nbproject/*
 /build/
 /dist/
