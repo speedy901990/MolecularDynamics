@@ -10,11 +10,16 @@
 
 class Atom {
 public:
+    int x, y, z;
+    int X();
+    int Y();
+    int Z();
     Atom();
     Atom(const Atom& orig);
     virtual ~Atom();
+    
 private:
-
+    
 };
 
 #endif	/* ATOM_H */

@@ -12,6 +12,6 @@
 *.la
 *.a
 
-# All netbeans files
-/build/
-/dist/
+# All executable files
+/obj/
+MolecularDynamics

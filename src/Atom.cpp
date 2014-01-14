@@ -16,3 +16,17 @@ Atom::Atom(const Atom& orig) {
 Atom::~Atom() {
 }
 
+int Atom::X() {
+    return x;
+}
+
+int Atom::Y() {
+    return y;
+}
+
+int Atom::Z() {
+    return z;
+}
+
+
+
