@@ -1,20 +1,20 @@
-/* 
- * File:   Global.h
- * Author: speedy
- *
- * Created on October 5, 2013, 8:20 AM
- */
-
-#ifndef GLOBAL_H
-#define	GLOBAL_H
+#ifndef __GLOBAL_H__
+#define	__GLOBAL_H__
 
 #include <iostream>
-#include "Structure.h"
+#include <pthread.h>
+#include <stdio.h>
+#include <cuda_runtime.h>
+#include "AtomsStructure.h"
+#include "CudaHelpers.h"
+#include "helper_functions.h"
 using namespace std;
 
-ostream& operator<< (ostream& stm, Atom& s){
-    stm << "X=" << s.X() << " Y=" << s.Y() << " Z=" << s.Z() << endl;
+ostream& operator<< (ostream& stm, AtomsStructure& s){
+    for (int i=0 ; i<s.Size() ; i++){
+    	stm << "X=" << s.x[i] << " Y=" << s.y[i] << " Z=" << s.z[i] << endl;
+    }
+    return stm;
 }
 
-#endif	/* GLOBAL_H */
-
+#endif	/* __GLOBAL_H__ */
