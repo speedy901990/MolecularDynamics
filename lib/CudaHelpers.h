@@ -81,9 +81,10 @@ void getDevices(int argc, char** argv, int &deviceID, int &deviceCount) {
             printf("cudaGetDeviceCount returned error code %d, line(%d)\n", error, __LINE__);
         if (checkCmdLineFlag(argc, (const char **)argv, "devLimit")) {
             deviceCount = getCmdLineArgumentInt(argc, (const char **)argv, "devLimit");
-            if (deviceCount%2 != 0 && deviceCount != 1)
-            printf("use 1 or even number of devices limit\n");
-            exit(EXIT_SUCCESS);
+            if (deviceCount%2 != 0 && deviceCount != 1) {
+                printf("use 1 or even number of devices limit\n");
+                exit(EXIT_SUCCESS);
+            }
         }
     }
 }
