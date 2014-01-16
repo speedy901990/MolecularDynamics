@@ -2,7 +2,8 @@
 
 AtomsStructure::AtomsStructure(){
     deviceID = 0;
-    size = 3;
+    size = 12;
+    iterN = 10000000;
     float initValue = 1.f;
     x = new float[size];
     y = new float[size];
@@ -17,6 +18,7 @@ AtomsStructure::AtomsStructure(){
 
 AtomsStructure::AtomsStructure(int size) {
     deviceID = 0;
+    iterN = 10000000;
     this->size = size;
     float initValue = 1.f;
     x = new float[size];

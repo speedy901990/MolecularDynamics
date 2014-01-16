@@ -5,7 +5,8 @@ class AtomsStructure {
 public:
     float *x, *y, *z;
     float *result;
-		int deviceID;
+	int deviceID;
+    int iterN;
     AtomsStructure();
     AtomsStructure(int size);
     AtomsStructure(const AtomsStructure& orig);
@@ -14,7 +15,7 @@ public:
     int DeviceID();
 
 private:
-		int size;
+	int size;
 };
 
 #endif	/* ATOMSSTRUCTURE_H */
