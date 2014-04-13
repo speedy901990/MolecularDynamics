@@ -1,0 +1,10 @@
+class Simulation {
+ public:
+  int potentialType;
+
+  int perform();
+  int setInitParams();
+
+ private:
+  Simulation();
+};

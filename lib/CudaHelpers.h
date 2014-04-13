@@ -133,7 +133,7 @@ static void HandleError( cudaError_t err, const char *file, int line ) {
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
 
-// Threading for more GPU support
+// Threading for multi GPU support
 typedef void *(*CUT_THREADROUTINE)(void *);
 
 pthread_t startThread(CUT_THREADROUTINE func, void * data){

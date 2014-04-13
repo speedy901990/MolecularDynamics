@@ -1,0 +1,8 @@
+struct Dimensions;
+
+class Structure {
+ public:
+  Dimensions dim;
+  int atomsCount;
+  
+};

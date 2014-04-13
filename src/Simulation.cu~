@@ -1,0 +1,13 @@
+#include "Simulation.h"
+
+Simulation::Simulation() {
+
+}
+
+int Simulation::perform() {
+
+}
+
+int Simulation::setInitParams() {
+
+}

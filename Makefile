@@ -1,6 +1,6 @@
 NVCC = nvcc
 GCC = g++
-NVCCFLAGS = -w
+NVCCFLAGS = -w -g
 LDFLAGS = 
 INCLUDES = -I./$(LIBDIR)
 OBJDIR = obj

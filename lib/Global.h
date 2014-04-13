@@ -10,11 +10,13 @@
 #include "helper_functions.h"
 using namespace std;
 
-ostream& operator<< (ostream& stm, AtomsStructure& s){
+/*ostream& operator<< (ostream& stm, AtomsStructure& s){
     for (int i=0 ; i<s.Size() ; i++){
     	stm << "X=" << s.x[i] << " Y=" << s.y[i] << " Z=" << s.z[i] << endl;
     }
     return stm;
 }
+*/
 
 #endif	/* __GLOBAL_H__ */
+

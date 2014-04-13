@@ -1,0 +1,8 @@
+#include <cstdlib>
+
+struct Position;
+
+class Atom {
+
+};
+
