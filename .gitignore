@@ -15,3 +15,8 @@
 # All executable files
 /obj/
 MolecularDynamics
+
+# All backup files
+src/*~
+lib/*~
+*~
