@@ -16,6 +16,10 @@ Atom::Atom() {
   this->fixed = false;
 }
 
+Atom::~Atom() {
+
+}
+
 int Atom::init(float x, float y, float z, float force, int status, bool fixed) {
   pos.x = x;
   pos.y = y;

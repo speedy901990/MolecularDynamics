@@ -1,3 +1,6 @@
+#ifndef SIMULATION_H
+#define SIMULATION_H
+
 #include "Structure.h"
 
 class Simulation {
@@ -8,8 +11,13 @@ class Simulation {
   int perform();
   int setInitParams();
   int loadStructure(Structure * structure);
-
+  enum { LENARD_JONES }; //potentialType
+  
  private:
   Simulation();
+  Simulation(Simulation const&);
+  void operator=(Simulation  const&);
   static Simulation * pInstance;
 };
+
+#endif /* SIMULATION_H */

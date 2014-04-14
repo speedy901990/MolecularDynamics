@@ -1,12 +1,16 @@
-#ifndef __GLOBAL_H__
-#define	__GLOBAL_H__
+#ifndef GLOBAL_H
+#define	GLOBAL_H
 
 #include <iostream>
+#include <cstdlib>
 #include <pthread.h>
 #include <stdio.h>
 #include <cuda_runtime.h>
-#include "AtomsStructure.h"
-#include "CudaHelpers.h"
+
+#include "Simulation.h"
+//#include "AtomsStructure.h"
+
+//#include "CudaHelpers.h"
 #include "helper_functions.h"
 using namespace std;
 
@@ -18,5 +22,5 @@ using namespace std;
 }
 */
 
-#endif	/* __GLOBAL_H__ */
+#endif	/* GLOBAL_H */
 
