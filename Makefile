@@ -1,22 +1,27 @@
 NVCC = nvcc
-GCC = g++
+CC = g++
 NVCCFLAGS = -w -g
-LDFLAGS = 
-INCLUDES = -I./$(LIBDIR)
+LDFLAGS = -w -g
+INCLUDES = -I./$(HDRDIR)
 OBJDIR = obj
 SRCDIR = src
-LIBDIR = lib
-CPPS = $(wildcard $(SRCDIR)/*.cu)
-OBJS = $(addprefix $(OBJDIR)/,$(notdir $(CPPS:.cu=.o)))
+HDRDIR = hdr
+CPPS = $(wildcard $(SRCDIR)/*.cpp)
+CUS = $(wildcard $(SRCDIR)/*.cu)
+OBJS = $(addprefix $(OBJDIR)/,$(notdir $(CPPS:.cpp=.o)))
+CU_OBJS = $(addprefix $(OBJDIR)/,$(notdir $(CUS:.cu=.o)))
 NAME = MolecularDynamics
 
 all: MolecularDynamics
 
 MolecularDynamics: $(OBJS)
-	$(NVCC) $(LDFLAGS) -o $(NAME) $^
+	$(CC) $(LDFLAGS) -o $(NAME) $^
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cu
 	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -c -o $@ $<
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CC) $(LDFLAGS) $(INCLUDES) -c -o $@ $<
 
 $(OBJS): | $(OBJDIR)
 
