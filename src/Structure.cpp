@@ -22,10 +22,11 @@ int Structure::init() {
   atomsCount = dim.x * dim.y * dim.z;
 
   atoms = new Atom[atomsCount];
-  for (int i=0 ; i<dim.x ; i++) {
-    for (int j=0 ; j<dim.y ; j++) {
-      for (int k=0 ; k<dim.z ; k++) {
-	atoms[i].init(i, j, k, 1, Atom::REGULAR);
+  int tmpCount = 0;
+  for (int i=0 ; (i<dim.x) && (tmpCount < atomsCount) ; i++) {
+    for (int j=0 ; (j<dim.y) && (tmpCount < atomsCount) ; j++) {
+      for (int k=0 ; (k<dim.z) && (tmpCount < atomsCount); k++) {
+	atoms[tmpCount++].init(i, j, k, 1, Atom::REGULAR);
       }
     }
   }

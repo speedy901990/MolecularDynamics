@@ -9,6 +9,8 @@ Simulation * Simulation::pInstance = NULL;
 Simulation * Simulation::instance() {
   if (!pInstance)
     pInstance = new Simulation();
+  
+  return pInstance;
 }
 
 int Simulation::perform() {
