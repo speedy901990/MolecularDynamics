@@ -12,7 +12,7 @@ Atom::Atom() {
   initPos.z = initValue;
   this->force = initValue;
   initForce = initValue;
-  this->status = initValue;
+  this->status = REGULAR;
   this->fixed = false;
 }
 
@@ -20,7 +20,7 @@ Atom::~Atom() {
   
 }
 
-int Atom::init(float x, float y, float z, float force, int status, bool fixed) {
+int Atom::init(float x, float y, float z, float force, Status status, bool fixed) {
   pos.x = x;
   pos.y = y;
   pos.z = z;
