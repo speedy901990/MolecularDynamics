@@ -2,6 +2,7 @@
 #define STRUCTURE_H
 
 #include "Atom.h"
+using namespace std;
 
 struct Dimensions {
   int x, y, z;
@@ -21,7 +22,7 @@ class Structure {
   int init();
 
  private:
-  int loadFromFile(std::string fileName);
+  int loadConfigFromFile(string fileName);
 };
 
 #endif /* STRUCTURE_H */

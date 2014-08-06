@@ -1,6 +1,5 @@
 #include <fstream>
 #include "Structure.h"
-using namespace std;
 
 Structure::Structure() {
   int count = 1;
@@ -17,7 +16,8 @@ Structure::~Structure() {
 
 int Structure::init() {
   string fileName = "structure.cfg";
-  loadFromFile(fileName);
+  if (loadConfigFromFile(fileName) != 0)
+    return -1;
 
   atomsCount = dim.x * dim.y * dim.z;
 
@@ -34,7 +34,7 @@ int Structure::init() {
   return 0;
 }
  
-int Structure::loadFromFile(string fileName) {
+int Structure::loadConfigFromFile(string fileName) {
   string fullPath = "config/" + fileName;
   ifstream cfgFile(fullPath.c_str());
   if (!cfgFile.is_open()) {
@@ -53,5 +53,6 @@ int Structure::loadFromFile(string fileName) {
   cfgFile >> dim.z;
   
   cfgFile.close();
+  return 0;
 }
 

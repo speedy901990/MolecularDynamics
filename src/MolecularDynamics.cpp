@@ -3,6 +3,7 @@
 int main(int argc, char** argv) {
   Structure * atomsStruct = new Structure();
   atomsStruct->init();
+  Simulation::instance()->init();
   Simulation::instance()->perform();
 
   delete atomsStruct;

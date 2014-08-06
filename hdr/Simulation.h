@@ -2,22 +2,25 @@
 #define SIMULATION_H
 
 #include "Structure.h"
+using namespace std;
 
 class Simulation {
  public:
-  int potentialType;
+  enum Potential{ LENARD_JONES }; //potentialType
+  Potential potentialType;
   
   static Simulation * instance();
   int perform();
-  int setInitParams();
+  int init();
   int loadStructure(Structure * structure);
-  enum { LENARD_JONES }; //potentialType
-  
- private:
+
+ private: 
   Simulation();
   Simulation(Simulation const&);
   void operator=(Simulation  const&);
   static Simulation * pInstance;
+  int loadConfigFromFile(string fileName);
+  int checkPotentialType(int potential);
 };
 
 #endif /* SIMULATION_H */
