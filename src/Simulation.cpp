@@ -23,8 +23,6 @@ int Simulation::init() {
   if (loadConfigFromFile(fileName) != 0)
     return -1;
   
-  // TODO
-
   return 0;
 }
 

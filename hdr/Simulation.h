@@ -6,7 +6,7 @@ using namespace std;
 
 class Simulation {
  public:
-  enum Potential{ LENARD_JONES }; //potentialType
+  enum Potential{ LENARD_JONES };
   Potential potentialType;
   
   static Simulation * instance();
