@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdlib>
 #include "Simulation.h"
+#include "GpuHandler.h"
 
 Simulation::Simulation() {}
 
@@ -14,12 +15,13 @@ Simulation * Simulation::instance() {
   return pInstance;
 }
 
-int Simulation::perform() {
+int Simulation::perform(int argc, char ** argv) {
+  GpuHandler::instance()->init(argc, argv);
+
   cout << "Simulation done!" << endl;
 }
 
-int Simulation::init() {
-  string fileName = "simulation.cfg";
+int Simulation::init(string fileName) {
   if (loadConfigFromFile(fileName) != 0)
     return -1;
   

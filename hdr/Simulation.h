@@ -10,15 +10,15 @@ class Simulation {
   Potential potentialType;
   
   static Simulation * instance();
-  int perform();
-  int init();
+  int perform(int argc, char ** argv);
+  int init(string fileName);
   int loadStructure(Structure * structure);
 
  private: 
   Simulation();
   Simulation(Simulation const&);
-  void operator=(Simulation  const&);
   static Simulation * pInstance;
+  void operator=(Simulation  const&);
   int loadConfigFromFile(string fileName);
   int checkPotentialType(int potential);
 };

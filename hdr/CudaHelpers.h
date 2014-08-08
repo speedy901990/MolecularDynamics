@@ -193,7 +193,7 @@ void getDevices(int argc, char** argv, int &deviceID, int &deviceCount) {
         }
     }
 }
-
+/*
 void prepareDeviceInputData(AtomsStructure *hostStructure, AtomsStructure *deviceData, int deviceCount) {
     for (int i=0 ; i<deviceCount ; i++) {
         deviceData[i] = AtomsStructure(hostStructure->Size() / deviceCount);
@@ -256,5 +256,5 @@ void * executeKernel(void * threadData) {
 
     //printf("%s\n", data->result ? "Partial Result = NOT NULL" : "Result = NULL");
 }
-
+*/
 #endif  // __CUDAHELPERS_H__
