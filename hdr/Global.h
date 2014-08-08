@@ -6,13 +6,9 @@
 #include <pthread.h>
 //#include <string>
 //#include <stdio.h>
-//#include <cuda_runtime.h>
 
 #include "Simulation.h"
-//#include "AtomsStructure.h"
 
-//#include "CudaHelpers.h"
-//#include "helper_functions.h"
 using namespace std;
 
 /*ostream& operator<< (ostream& stm, AtomsStructure& s){
