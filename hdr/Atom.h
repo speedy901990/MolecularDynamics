@@ -18,7 +18,6 @@ class Atom {
   Status status;
   bool fixed;
 
-
   int init(float x, float y, float z, float force, Status status, bool fixed = false);
 };
 

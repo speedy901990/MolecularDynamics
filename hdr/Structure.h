@@ -1,6 +1,7 @@
 #ifndef STRUCTURE_H
 #define STRUCTURE_H
 
+#include "Global.h"
 #include "Atom.h"
 using namespace std;
 
@@ -19,10 +20,11 @@ class Structure {
   int forceType;
   enum { TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT, ALL_AROUND }; //forceType
   
-  int init();
+  int init(string fileName);
 
  private:
   int loadConfigFromFile(string fileName);
+  static bool initCompleted;
 };
 
 #endif /* STRUCTURE_H */

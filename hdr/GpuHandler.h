@@ -2,6 +2,7 @@
 #define GPU_HANDLER_H
 
 #include "Global.h"
+#include "Simulation.h"
 
 class GpuHandler {
  public:
@@ -15,8 +16,9 @@ class GpuHandler {
   GpuHandler();
   static GpuHandler * pInstance;
   void operator=(Simulation const&);
-  int displayUsageInfo();
-  void isParamsInitialized();
+  void displayUsageInfo();
+  int areParamsInitialized();
+  int parseInputParams();
 };
 
 #endif /* GPU_HANDLER_H */

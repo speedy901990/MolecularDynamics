@@ -3,10 +3,13 @@
 #include <cstdlib>
 #include "Simulation.h"
 #include "GpuHandler.h"
+#include "Structure.h"
+#include "Log.h"
 
 Simulation::Simulation() {}
 
 Simulation * Simulation::pInstance = NULL;
+bool Simulation::initCompleted = false;
 
 Simulation * Simulation::instance() {
   if (!pInstance)
@@ -15,17 +18,38 @@ Simulation * Simulation::instance() {
   return pInstance;
 }
 
-int Simulation::perform(int argc, char ** argv) {
-  GpuHandler::instance()->init(argc, argv);
+int Simulation::perform(Structure * structure) {
+  int ret = SUCCESS;
+
+  ret = checkStructure(structure);
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
+    exit(1);
+  }
 
   cout << "Simulation done!" << endl;
 }
 
-int Simulation::init(string fileName) {
-  if (loadConfigFromFile(fileName) != 0)
-    return -1;
-  
-  return 0;
+int Simulation::init(string fileName, int argc, char ** argv) {
+  int ret = SUCCESS;
+
+  if (initCompleted)
+    return INIT_ALREADY_COMPLETED;
+
+  ret = loadConfigFromFile(fileName);
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__, "FileName: " + fileName);
+    exit(1);
+  }
+
+  ret = GpuHandler::instance()->init(argc, argv);
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
+    exit(1);
+  }
+
+  initCompleted = true;
+  return SUCCESS;
 }
 
 int Simulation::loadConfigFromFile(string fileName) {
@@ -33,32 +57,33 @@ int Simulation::loadConfigFromFile(string fileName) {
   ifstream cfgFile(fullPath.c_str());
   if (!cfgFile.is_open()) {
     cfgFile.close();
-    return -1;
+    return E_FILE_NOT_FOUND;
   }
   string tmp;
   int potential;
 
   getline(cfgFile, tmp);
   cfgFile >> potential;
-  if (checkPotentialType(potential) != 0) {
+  if (checkPotentialType(potential) != SUCCESS) {
     cfgFile.close();
-    return -1;
+    return E_CONFIG_FILE_PARSE;
   }
   this->potentialType = static_cast<Potential>(potential);
   
   cfgFile.close();
-  return 0;
+  return SUCCESS;
 }
 
 int Simulation::checkPotentialType(int potential) {
   for (int i=LENARD_JONES ; i!=LENARD_JONES ; i++)
     if (i == potential)
-      return -1;
-  return 0;
+      return FAIL;
+  return SUCCESS;
 }
-  
 
+int Simulation::checkStructure(Structure * structure) {
+  if (structure == NULL || structure->atoms == NULL)
+    return E_CORRUPTED_STRUCTURE;
 
-int Simulation::loadStructure(Structure * structure) {
-  
+  return 0;
 }

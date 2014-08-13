@@ -1,23 +1,32 @@
 #include <fstream>
 #include "Structure.h"
+#include "Log.h"
+bool Structure::initCompleted = false;
 
 Structure::Structure() {
-  int count = 1;
+  /*int count = 1;
   dim.x = count;
   dim.y = count;
   dim.z = count;
   atomsCount = count;
-  atoms = new Atom[count];
+  atoms = new Atom[count];*/
 }
 
 Structure::~Structure() {
   delete [] atoms;
 }
 
-int Structure::init() {
-  string fileName = "structure.cfg";
-  if (loadConfigFromFile(fileName) != 0)
-    return -1;
+int Structure::init(string fileName) {
+  int ret = SUCCESS;
+  
+  if (initCompleted)
+    return INIT_ALREADY_COMPLETED;
+
+  ret = loadConfigFromFile(fileName);
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__, "FileName: " + fileName);
+    exit(1);
+  }
 
   atomsCount = dim.x * dim.y * dim.z;
 
@@ -30,8 +39,9 @@ int Structure::init() {
       }
     }
   }
-
-  return 0;
+  
+  initCompleted = true;
+  return SUCCESS;
 }
  
 int Structure::loadConfigFromFile(string fileName) {
@@ -39,7 +49,7 @@ int Structure::loadConfigFromFile(string fileName) {
   ifstream cfgFile(fullPath.c_str());
   if (!cfgFile.is_open()) {
     cfgFile.close();
-    return -1;
+    return FAIL;
   }
   string tmp;
 
@@ -53,6 +63,6 @@ int Structure::loadConfigFromFile(string fileName) {
   cfgFile >> dim.z;
   
   cfgFile.close();
-  return 0;
+  return SUCCESS;
 }
 

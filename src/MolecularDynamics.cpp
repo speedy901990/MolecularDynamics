@@ -1,13 +1,13 @@
 #include "Global.h"
+#include "Structure.h"
+#include "Simulation.h"
 
 int main(int argc, char** argv) {
-  Structure * atomsStruct = new Structure();
-  atomsStruct->init();
-  Simulation::instance()->init("simulation.cfg");
-  Simulation::instance()->perform(argc, argv);
-
-  delete atomsStruct;
-
+    Structure * atomsStruct = new Structure();
+    atomsStruct->init("structure.cfg");
+    Simulation::instance()->init("simulation.cfg", argc, argv);
+    Simulation::instance()->perform(atomsStruct);
+    
   /*
   printf("[Molecular Dynamics Using CUDA] - Starting...\n");
 

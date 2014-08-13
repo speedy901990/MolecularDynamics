@@ -1,5 +1,6 @@
 #include <cuda_runtime.h>
 
+#include "Log.h"
 #include "CudaHelpers.h"
 #include "GpuHandler.h"
 #include "helper_functions.h"
@@ -16,32 +17,45 @@ GpuHandler * GpuHandler::instance() {
 }
 
 int GpuHandler::init(int argc, char ** argv) {
+  int ret = SUCCESS;
+
   this->argc = argc;
   this->argv = argv;
-  displayUsageInfo();
+
+  ret = parseInputParams();
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
+    return ret;
+  }
+
+
   printf("[Molecular Dynamics Using CUDA] - Initializing...\n");
 
-  return 0;
+  return SUCCESS;
 }
 
-void GpuHandler::isParamsInitialized() {
-  if (argc <= 1) {
-    cerr << "ERROR: GPU params not initialized. Use: ? for help." << endl;
-    exit(EXIT_FAILURE);
-  }
+int GpuHandler::areParamsInitialized() {
+  if (argc <= 1)
+    return E_GPU_PARAMS;
+
+  return SUCCESS;
 }
 
-int GpuHandler::displayUsageInfo() {
-  isParamsInitialized();
+int GpuHandler::parseInputParams() {
+  if(areParamsInitialized())
+    return FAIL;
+
   if (checkCmdLineFlag(argc, (const char **)argv, "help") || checkCmdLineFlag(argc, (const char **)argv, "?")) {
-    printf("Usage: (* -> required)\n");
-    printf("\t-device=n (n >= 0 for deviceID)\n");
-    printf("\t-devLimit=devicesCount (Limit of devices used to computing - use 1 or numer of devices)\n");
-    printf("*\t-size=size (Atoms Structure size)\n");
-    printf("\t-deviceList (Displays devices list)\n");
-
-    exit(EXIT_SUCCESS);
+    displayUsageInfo();
   }
 
-  return -1;
+  return SUCCESS;
+}
+
+void GpuHandler::displayUsageInfo() {
+  printf("Usage: (* -> required)\n");
+  printf("\t-device=n (n >= 0 for deviceID)\n");
+  printf("\t-devLimit=devicesCount (Limit of devices used to computing - use 1 or numer of devices)\n");
+  printf("*\t-size=size (Atoms Structure size)\n");
+  printf("\t-deviceList (Displays devices list)\n");
 }
