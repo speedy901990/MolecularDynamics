@@ -23,8 +23,9 @@ class Structure {
   int init(string fileName);
 
  private:
-  int loadConfigFromFile(string fileName);
   static bool initCompleted;
+
+  int loadConfigFromFile(string fileName);
 };
 
 #endif /* STRUCTURE_H */

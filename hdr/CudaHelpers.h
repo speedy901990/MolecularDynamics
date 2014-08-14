@@ -2,10 +2,11 @@
 #define __CUDAHELPERS_H__
 #include <stdio.h>
 #include "helper_functions.h"
+#include "Structure.h"
 
-//------------------- Kernels ----------------------------
+//------------------- Kernels ----------------------------------
 __global__ void add( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten w¹tek przetwarza dane pod okreœlonym indeksem
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
     while (tid < size) {
         result[tid] = x[tid] + y[tid] + z[tid];
         tid += blockDim.x * gridDim.x;
@@ -13,11 +14,16 @@ __global__ void add( float *x, float *y, float *z, float *result , int size) {
 }
 
 __global__ void multiply( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten w¹tek przetwarza dane pod okreœlonym indeksem
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
     while (tid < size) {
         result[tid] = x[tid] * y[tid] * z[tid];
         tid += blockDim.x * gridDim.x;
     }
+}
+
+__global__ void atomsStructureTest( Structure * input, Structure * output) {
+  //    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
+  output->atomsCount = input->atomsCount;
 }
 
 __global__ void lennardSolver( float * X,
@@ -116,7 +122,7 @@ __global__ void lennardSolver( float * X,
     }
 }
 
-//--------------------------------------------------------
+// ERROR handling-----------------------------------------------------------
 
 static void HandleError( cudaError_t err, const char *file, int line ) {
     if (err != cudaSuccess) {
@@ -133,7 +139,7 @@ static void HandleError( cudaError_t err, const char *file, int line ) {
                                     __FILE__, __LINE__ ); \
                             exit( EXIT_FAILURE );}}
 
-// Threading for multi GPU support
+// Threading for multi GPU support------------------------------------------
 typedef void *(*CUT_THREADROUTINE)(void *);
 
 pthread_t startThread(CUT_THREADROUTINE func, void * data){
@@ -146,7 +152,8 @@ void endThread(pthread_t thread){
     pthread_join(thread, NULL);
 }
 
-void displayDevices() {
+// Other helper methodes-----------------------------------------------------
+void displayAvailableDevices() {
     int deviceCount;
     cudaError_t error;
     cudaDeviceProp deviceProp;
@@ -163,36 +170,45 @@ void displayDevices() {
             printf("cudaGetDeviceProperties returned error code %d, line(%d)\n", error, __LINE__);
         printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", i, deviceProp.name, deviceProp.major, deviceProp.minor);
     }
-
-    printf("\n");
 }
 
-void getDevices(int argc, char** argv, int &deviceID, int &deviceCount) {
-    cudaError_t error;
+void displayChosenDevices(int * devicesID, int devicesCount) {
+  cudaError_t error;
+  cudaDeviceProp deviceProp;
+  printf("Chosen devices: %d\n", devicesCount);
 
-    if (checkCmdLineFlag(argc, (const char **)argv, "device")) {
-        deviceID = getCmdLineArgumentInt(argc, (const char **)argv, "device");
-        error = cudaSetDevice(deviceID);;
-
-        if (error != cudaSuccess) {
-            printf("cudaSetDevice returned error code, %d, line(%d) - no such device\n", error, __LINE__);
-            exit(EXIT_SUCCESS);
-        } 
-    }  
-    else {
-        error = cudaGetDeviceCount(&deviceCount);
-
+  for (int i=0 ; i<devicesCount ; i++) {
+        error = cudaGetDeviceProperties(&deviceProp, devicesID[i]);
         if (error != cudaSuccess)
-            printf("cudaGetDeviceCount returned error code %d, line(%d)\n", error, __LINE__);
-        if (checkCmdLineFlag(argc, (const char **)argv, "devLimit")) {
-            deviceCount = getCmdLineArgumentInt(argc, (const char **)argv, "devLimit");
-            if (deviceCount%2 != 0 && deviceCount != 1) {
-                printf("use 1 or even number of devices limit\n");
-                exit(EXIT_SUCCESS);
-            }
-        }
+            printf("cudaGetDeviceProperties returned error code %d, line(%d)\n", error, __LINE__);
+        printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devicesID[i], deviceProp.name, deviceProp.major, deviceProp.minor);
     }
 }
+
+void getDevices(int * &devicesID, int &devicesCount) {
+  cudaError_t error;
+  int devicesLimit;
+  error = cudaGetDeviceCount(&devicesLimit);
+  if (error != cudaSuccess) {
+    printf("cudaGetDeviceCount returned error code %d, line(%d)\n", error, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  if (devicesCount > devicesLimit) {
+    printf("ERR: devicesCount cannot be larger than devicesLimit returned error code %d, line(%d)\n", error, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+      // TODO
+  for (int i=0 ; i<devicesCount ; i++) {
+    error = cudaSetDevice(devicesID[i]);;
+    if (error != cudaSuccess) {
+      printf("cudaSetDevice returned error code, %d, line(%d) - no such device\n", error, __LINE__);
+      exit(EXIT_SUCCESS);
+    }
+  } 
+}
+
 /*
 void prepareDeviceInputData(AtomsStructure *hostStructure, AtomsStructure *deviceData, int deviceCount) {
     for (int i=0 ; i<deviceCount ; i++) {

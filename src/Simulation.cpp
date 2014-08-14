@@ -24,10 +24,17 @@ int Simulation::perform(Structure * structure) {
   ret = checkStructure(structure);
   if (ret != SUCCESS) {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
+  
+  cout << "\n--------------- Computing ----------------" << endl << endl;
 
-  cout << "Simulation done!" << endl;
+  GpuHandler::instance()->allocateDeviceMemory();
+  GpuHandler::instance()->sendDataToDevice(structure);
+  GpuHandler::instance()->executeKernel();
+  GpuHandler::instance()->getDataFromDevice();
+
+  cout << "\n------------- Simulation done! ------------" << endl;
 }
 
 int Simulation::init(string fileName, int argc, char ** argv) {
@@ -39,13 +46,13 @@ int Simulation::init(string fileName, int argc, char ** argv) {
   ret = loadConfigFromFile(fileName);
   if (ret != SUCCESS) {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__, "FileName: " + fileName);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   ret = GpuHandler::instance()->init(argc, argv);
   if (ret != SUCCESS) {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   initCompleted = true;
@@ -85,5 +92,5 @@ int Simulation::checkStructure(Structure * structure) {
   if (structure == NULL || structure->atoms == NULL)
     return E_CORRUPTED_STRUCTURE;
 
-  return 0;
+  return SUCCESS;
 }
