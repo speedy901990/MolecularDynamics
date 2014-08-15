@@ -7,6 +7,7 @@
 #include <exception>
 #include <string.h>
 #include <typeinfo>
+#include <stdio.h>
 using namespace std;
 
 enum {
