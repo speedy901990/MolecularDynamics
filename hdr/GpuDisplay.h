@@ -1,19 +1,13 @@
 #ifndef GPU_DISPLAY_H
 #define GPU_DISPLAY_H
 
-// OpenGL Graphics includes
-//#include "GL/glew.h"
-#include "GL/freeglut.h"
-
 // Utilities and timing functions
-#include "helper_functions.h"    // includes cuda.h and cuda_runtime_api.h
-//#include "timer.h"               // timing functions
-
+#include "helper_functions.h"
 // CUDA helper functions
-#include "helper_cuda.h"         // helper functions for CUDA error check
-#include "helper_cuda_gl.h"      // helper functions for CUDA/GL interop
+#include "helper_cuda.h"     
+#include "helper_cuda_gl.h"  
 
-//#include <vector_types.h>
+#include <vector_types.h>
 
 #include "Global.h"
 
@@ -21,33 +15,33 @@
 
 class GpuDisplay {
  public:
-  GpuDisplay();
-  ~GpuDisplay();
-  int init();
+  static GpuDisplay * instance();
+  int init(int argc, char ** argv);
+  void runAnimation();
 
  private:
+  static GpuDisplay * pInstance;
   // constants
   const float MAX_EPSILON_ERROR = 10.0f;
   const float THRESHOLD = 0.30f;
   const float REFRESH_DELAY = 10; //ms
-  const unsigned int window_width  = 512;
-  const unsigned int window_height = 512;
-  const unsigned int mesh_width    = 256;
-  const unsigned int mesh_height   = 256;
-
+  unsigned int window_width;
+  unsigned int window_height;
+  unsigned int mesh_width;
+  unsigned int mesh_height;
   // vbo variables
   GLuint vbo;
   struct cudaGraphicsResource *cuda_vbo_resource;
   void *d_vbo_buffer;
   float g_fAnim;
-
   // mouse controls
-  int mouse_old_x, mouse_old_y;
+  int mouse_old_x;
+  int mouse_old_y;
   int mouse_buttons;
-  float rotate_x, rotate_y;
+  float rotate_x;
+  float rotate_y;
   float translate_z;
-  //StopWatchInterface *timer;
-
+  StopWatchInterface *timer;
   // Auto-Verification Code
   int fpsCount;        // FPS count for averaging
   int fpsLimit;        // FPS limit for sampling
@@ -56,6 +50,31 @@ class GpuDisplay {
   unsigned int frameCount;
   unsigned int g_TotalErrors;
   bool g_bQAReadback;
+
+  GpuDisplay();
+  void operator=(GpuDisplay const&);
+
+  int initGL(int argc, char ** argv);
+  void runCuda(struct cudaGraphicsResource **vbo_resource);
+  void launch_kernel(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
+
+  static void displayWrapper();
+  static void keyboardWrapper(unsigned char key, int x, int y);
+  static void motionWrapper(int x, int y);
+  static void mouseWrapper(int button, int state, int x, int y);
+  static void cleanupWrapper();
+  static void timerEventWrapper(int value);
+
+  void display();
+  void keyboard(unsigned char key, int x, int y);
+  void motion(int x, int y);
+  void mouse(int button, int state, int x, int y);
+
+  void cleanup();
+  void timerEvent(int value);
+  void computeFPS();
+  void createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res, unsigned int vbo_res_flags);
+  void deleteVBO(GLuint *vbo, struct cudaGraphicsResource *vbo_res);
 };
 
 #endif /* GPU_DISPLAY_H */

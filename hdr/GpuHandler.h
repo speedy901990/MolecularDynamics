@@ -11,8 +11,8 @@ class GpuHandler {
  public:
   static GpuHandler * instance();
   int init(int argc, char ** argv);
+  
   GpuKernel kernel;
-  GpuDisplay display;
 
  private:
   int argc;

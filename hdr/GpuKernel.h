@@ -3,6 +3,7 @@
 
 #include "Global.h"
 #include "Structure.h"
+#include "GpuDisplay.h"
 
 struct DevMemory {
   Structure * inputAtomsStructure;
@@ -11,17 +12,20 @@ struct DevMemory {
 };
 
 class GpuKernel {
+  friend class GpuDisplay;
  public:
   GpuKernel();
   ~GpuKernel();
   int allocateDeviceMemory();
   int sendDataToDevice(Structure * atomsStructure);
-  int executeKernel();
+  int execute(bool displayOn = true);
   int getDataFromDevice();
   int clearDeviceMemory();
 
  private:
   DevMemory devicePtr;
+  int executeDisplayOn();
+  int executeDisplayOff();
 };
 
 

@@ -1,9 +1,9 @@
 NVCC = nvcc
 CC = g++
 NVCCFLAGS = -w -g 
-LDFLAGS = -w -g -L/usr/local/cuda/lib64 
-INCLUDES = -I./$(HDRDIR) 
-LIBS = -lcudart -lpthread -lGL #-lGLU
+LDFLAGS = -w -g -L/usr/local/cuda/lib64
+INCLUDES = -I./$(HDRDIR) -I/usr/local/cuda/include
+LIBS = -lcudart -lpthread -lGL -lGLU -lGLEW -lglut
 OBJDIR = obj
 SRCDIR = src
 HDRDIR = hdr

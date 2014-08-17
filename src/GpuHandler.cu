@@ -32,6 +32,8 @@ int GpuHandler::init(int argc, char ** argv) {
   
   getDevices(devicesID, devicesCount);
   displayChosenDevices(devicesID, devicesCount);
+  
+  GpuDisplay::instance()->init(argc, argv);
 
   return SUCCESS;
 }

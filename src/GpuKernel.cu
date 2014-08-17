@@ -33,12 +33,28 @@ int GpuKernel::sendDataToDevice(Structure * atomsStructure) {
   return SUCCESS;
 }
 
-int GpuKernel::executeKernel() {
-  cout << "\t> Executing kernel... ";
+int GpuKernel::execute(bool displayOn) {
+  cout << flush << "\t> Executing kernel... ";
 
-  atomsStructureTest<<<1,1>>>( devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-
+  if (displayOn) {
+    executeDisplayOn();
+  }
+  else {
+    executeDisplayOff();
+  }
   cout << "done!" << endl;
+
+  return SUCCESS;
+}
+
+int GpuKernel::executeDisplayOn() {
+  GpuDisplay::instance()->runAnimation();
+
+  return SUCCESS;
+}
+
+int GpuKernel::executeDisplayOff() {
+  atomsStructureTest<<<1,1>>>( devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
 
   return SUCCESS;
 }
