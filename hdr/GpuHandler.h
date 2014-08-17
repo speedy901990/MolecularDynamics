@@ -4,29 +4,21 @@
 #include "Global.h"
 #include "Simulation.h"
 #include "Structure.h"
-
-struct DevMemory {
-  Structure * inputAtomsStructure;
-  Structure * outputAtomsStructure;
-  //TODO result
-};
+#include "GpuKernel.h"
+#include "GpuDisplay.h"
 
 class GpuHandler {
  public:
   static GpuHandler * instance();
   int init(int argc, char ** argv);
-  int allocateDeviceMemory();
-  int sendDataToDevice(Structure * atomsStructure);
-  int executeKernel();
-  int getDataFromDevice();
-  int clearDeviceMemory();
+  GpuKernel kernel;
+  GpuDisplay display;
 
  private:
   int argc;
   char ** argv;
   int * devicesID;
   int devicesCount;
-  DevMemory devicePtr;
 
   GpuHandler();
   static GpuHandler * pInstance;

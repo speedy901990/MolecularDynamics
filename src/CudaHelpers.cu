@@ -2,7 +2,7 @@
 
 //------------------- Kernels ----------------------------------
 __global__ void add( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < size) {
         result[tid] = x[tid] + y[tid] + z[tid];
         tid += blockDim.x * gridDim.x;
@@ -10,7 +10,7 @@ __global__ void add( float *x, float *y, float *z, float *result , int size) {
 }
 
 __global__ void multiply( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
     while (tid < size) {
         result[tid] = x[tid] * y[tid] * z[tid];
         tid += blockDim.x * gridDim.x;
@@ -18,7 +18,7 @@ __global__ void multiply( float *x, float *y, float *z, float *result , int size
 }
 
 __global__ void atomsStructureTest( Structure * input, Structure * output) {
-  //    int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Ten watek przetwarza dane pod okreslonym indeksem
+  //    int tid = threadIdx.x + blockIdx.x * blockDim.x;
   output->atomsCount = input->atomsCount;
 }
 
@@ -54,7 +54,7 @@ __global__ void lennardSolver( float * X,
 
 
     // main algorithm
-
+    
     //float delta = 0.001;
 
     // potential coefficients

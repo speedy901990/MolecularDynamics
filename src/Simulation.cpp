@@ -29,10 +29,10 @@ int Simulation::perform(Structure * structure) {
   
   cout << "\n--------------- Computing ----------------" << endl << endl;
 
-  GpuHandler::instance()->allocateDeviceMemory();
-  GpuHandler::instance()->sendDataToDevice(structure);
-  GpuHandler::instance()->executeKernel();
-  GpuHandler::instance()->getDataFromDevice();
+  GpuHandler::instance()->kernel.allocateDeviceMemory();
+  GpuHandler::instance()->kernel.sendDataToDevice(structure);
+  GpuHandler::instance()->kernel.executeKernel();
+  GpuHandler::instance()->kernel.getDataFromDevice();
 
   cout << "\n------------- Simulation done! ------------" << endl;
 }
