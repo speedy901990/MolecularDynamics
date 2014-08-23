@@ -18,7 +18,7 @@ Simulation * Simulation::instance() {
   return pInstance;
 }
 
-int Simulation::perform(Structure * structure) {
+int Simulation::perform() {
   int ret = SUCCESS;
 
   ret = checkStructure(structure);
@@ -29,7 +29,7 @@ int Simulation::perform(Structure * structure) {
   
   cout << "\n--------------- Computing ----------------" << endl << endl;
 
-  GpuHandler::instance()->kernel.allocateDeviceMemory();
+  GpuHandler::instance()->kernel.allocateDeviceMemory(structure);
   GpuHandler::instance()->kernel.sendDataToDevice(structure);
   GpuHandler::instance()->kernel.execute();
   GpuHandler::instance()->kernel.getDataFromDevice();
@@ -37,7 +37,7 @@ int Simulation::perform(Structure * structure) {
   cout << "\n------------- Simulation done! ------------" << endl;
 }
 
-int Simulation::init(string fileName, int argc, char ** argv) {
+int Simulation::init(string fileName, Structure * &structure, int argc, char ** argv) {
   int ret = SUCCESS;
 
   if (initCompleted)
@@ -49,11 +49,19 @@ int Simulation::init(string fileName, int argc, char ** argv) {
     exit(EXIT_FAILURE);
   }
 
-  ret = GpuHandler::instance()->init(argc, argv);
+  ret = checkStructure(structure);
   if (ret != SUCCESS) {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
+
+  ret = GpuHandler::instance()->init(argc, argv, structure);
+  if (ret != SUCCESS) {
+    Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  this->structure = structure;
 
   initCompleted = true;
   return SUCCESS;

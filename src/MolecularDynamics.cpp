@@ -5,8 +5,8 @@
 int main(int argc, char** argv) {
     Structure * atomsStruct = new Structure();
     atomsStruct->init("structure.cfg");
-    Simulation::instance()->init("simulation.cfg", argc, argv);
-    Simulation::instance()->perform(atomsStruct);
+    Simulation::instance()->init("simulation.cfg", atomsStruct, argc, argv);
+    Simulation::instance()->perform();
     
   /*
   printf("[Molecular Dynamics Using CUDA] - Starting...\n");

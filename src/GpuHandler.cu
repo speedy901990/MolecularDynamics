@@ -16,7 +16,7 @@ GpuHandler * GpuHandler::instance() {
   return pInstance;
 }
 
-int GpuHandler::init(int argc, char ** argv) {
+int GpuHandler::init(int argc, char ** argv, Structure * &structure) {
   int ret = SUCCESS;
 
   this->argc = argc;
@@ -32,8 +32,8 @@ int GpuHandler::init(int argc, char ** argv) {
   
   getDevices(devicesID, devicesCount);
   displayChosenDevices(devicesID, devicesCount);
-  
-  GpuDisplay::instance()->init(argc, argv);
+
+  GpuDisplay::instance()->init(argc, argv, structure);
 
   return SUCCESS;
 }

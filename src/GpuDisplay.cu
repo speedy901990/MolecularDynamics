@@ -20,11 +20,11 @@ GpuDisplay * GpuDisplay::instance() {
   return pInstance;
 }
 
-int GpuDisplay::init(int argc, char ** argv) {
+int GpuDisplay::init(int argc, char ** argv, Structure * &structure) {
   window_width  = 512;
   window_height = 512;
-  mesh_width    = 256;
-  mesh_height   = 256;
+  mesh_width    = structure->dim.x;
+  mesh_height   = structure->dim.y;
 
   d_vbo_buffer = NULL;
   g_fAnim = 0.0;
@@ -44,6 +44,8 @@ int GpuDisplay::init(int argc, char ** argv) {
   frameCount = 0;
   g_TotalErrors = 0;
   g_bQAReadback = false;
+
+  this->structure = structure;
 
   initGL(argc, argv);
 }
@@ -92,13 +94,6 @@ void GpuDisplay::runCuda(struct cudaGraphicsResource **vbo_resource) {
     size_t num_bytes;
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&dptr, &num_bytes,
                                                          *vbo_resource));
-    //printf("CUDA mapped VBO: May access %ld bytes\n", num_bytes);
-
-    // execute the kernel
-    //    dim3 block(8, 8, 1);
-    //    dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
-    //    kernel<<< grid, block>>>(dptr, mesh_width, mesh_height, g_fAnim);
-
     launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
 
     // unmap buffer object
@@ -106,14 +101,12 @@ void GpuDisplay::runCuda(struct cudaGraphicsResource **vbo_resource) {
 }
 
 void GpuDisplay::launch_kernel(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {
-    // execute the kernel
-    dim3 block(8, 8, 1);
-    dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
-    simple_vbo_kernel<<< grid, block>>>(pos, mesh_width, mesh_height, time);
-    // simple_vbo_kernel<<<1,1>>>(pos, mesh_width, mesh_height, time);
+  kernel->executeInsideGlutLoop(pos, mesh_width, mesh_height, time);
 }
 
-void GpuDisplay::runAnimation() {
+void GpuDisplay::runAnimation(GpuKernel *pKernel) {
+  kernel = pKernel;
+  
   // register callbacks
   glutDisplayFunc(displayWrapper);
   glutKeyboardFunc(keyboardWrapper);
@@ -263,6 +256,7 @@ void GpuDisplay::createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res, u
 
   // initialize buffer object
   unsigned int size = mesh_width * mesh_height * 4 * sizeof(float);
+  //unsigned int size = structure->dim.x * structure->dim.y * structure->dim.z * 4 * sizeof(float);
   glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);

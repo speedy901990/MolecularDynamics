@@ -10,7 +10,7 @@
 class GpuHandler {
  public:
   static GpuHandler * instance();
-  int init(int argc, char ** argv);
+  int init(int argc, char ** argv, Structure * &structure);
   
   GpuKernel kernel;
 

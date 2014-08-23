@@ -10,14 +10,17 @@
 #include <vector_types.h>
 
 #include "Global.h"
+#include "Structure.h"
+#include "GpuKernel.h"
 
 #define MAX(a,b) ((a > b) ? a : b)
+class GpuKernel;
 
 class GpuDisplay {
  public:
   static GpuDisplay * instance();
-  int init(int argc, char ** argv);
-  void runAnimation();
+  int init(int argc, char ** argv, Structure * &structure);
+  void runAnimation(GpuKernel * pKernel);
 
  private:
   static GpuDisplay * pInstance;
@@ -50,6 +53,9 @@ class GpuDisplay {
   unsigned int frameCount;
   unsigned int g_TotalErrors;
   bool g_bQAReadback;
+
+  Structure * structure;
+  GpuKernel * kernel;
 
   GpuDisplay();
   void operator=(GpuDisplay const&);

@@ -8,24 +8,26 @@
 struct DevMemory {
   Structure * inputAtomsStructure;
   Structure * outputAtomsStructure;
+  Atom * inputAtoms;
+  Atom * outputAtoms;
   //TODO result
 };
 
 class GpuKernel {
-  friend class GpuDisplay;
  public:
   GpuKernel();
   ~GpuKernel();
-  int allocateDeviceMemory();
-  int sendDataToDevice(Structure * atomsStructure);
+  int allocateDeviceMemory(Structure * &atomsStructure);
+  int sendDataToDevice(Structure * &atomsStructure);
   int execute(bool displayOn = true);
   int getDataFromDevice();
   int clearDeviceMemory();
+  int executeDisplayOn();
+  int executeDisplayOff();
+  void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 
  private:
   DevMemory devicePtr;
-  int executeDisplayOn();
-  int executeDisplayOff();
 };
 
 
