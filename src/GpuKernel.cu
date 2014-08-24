@@ -66,7 +66,8 @@ int GpuKernel::executeDisplayOff() {
 void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {
   dim3 block(8, 8, 1);
   dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
-  vbo_MD_kernel<<<grid, block>>>(pos, devicePtr.inputAtomsStructure, time);
+  //vbo_MD_kernel<<<grid, block>>>(pos, devicePtr.inputAtomsStructure, time);
+  vbo_MD_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, time);
 }
 
 int GpuKernel::getDataFromDevice() {

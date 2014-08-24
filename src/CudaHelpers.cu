@@ -43,26 +43,35 @@ __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int 
 
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 {
+  int atomsCount = input->atomsCount;
+  int tmpCount = 0;
+  float u, v, w;
+  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
+    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
+      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
+	u = input->atoms[tmpCount].pos.x * 0.1f;
+	w = input->atoms[tmpCount].pos.y * 0.1f;
+        v = input->atoms[tmpCount].pos.z * 0.1f;
+
+	pos[tmpCount] = make_float4(u, w, v, 1.0f);
+	tmpCount++;
+      }
+    }
+  }
+  /*
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int index = y * input->dim.x + x;
-    // calculate uv coordinates
-    /*float u = x / (float) input->dim.x;
-    float v = y / (float) input->dim.y;
-    u = u*2.0f - 1.0f;
-    v = v*2.0f - 1.0f;
-    float freq = 4.0f;
-    float w = sinf(u*freq + time) * cosf(v*freq + time) * 0.5f;
-    */
+
     float u = input->atoms[index].pos.x * 0.1f;
-    //float u = 0.5f;//input->atoms[0].pos.x * 0.5f;
+
     float w = input->atoms[index].pos.y * 0.1f;
-    float v = 0.5f*sinf(u*4.0f + time) * cosf(v*4.0f + time) * 0.5f;
-    //float v = input->atoms[index].pos.z * 0.1f;
+
+    float v = input->atoms[index].pos.z * 0.1f;
     
-    //pos[index] = make_float4(1.0f, 1.0f, 1.0f, 1.0f);
 
     pos[index] = make_float4(u, w, v, 1.0f);
+  */
 }
 
 __global__ void lennardSolver( float * X,

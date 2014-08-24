@@ -25,6 +25,7 @@ int GpuDisplay::init(int argc, char ** argv, Structure * &structure) {
   window_height = 512;
   mesh_width    = structure->dim.x;
   mesh_height   = structure->dim.y;
+  mesh_depth    = structure->dim.z;
 
   d_vbo_buffer = NULL;
   g_fAnim = 0.0;
@@ -33,6 +34,8 @@ int GpuDisplay::init(int argc, char ** argv, Structure * &structure) {
   mouse_buttons = 0;
   rotate_x = 0.0;
   rotate_y = 0.0;
+  translate_x = -1.0;
+  translate_y = -1.0;
   translate_z = -3.0;
   timer = NULL;
 
@@ -54,7 +57,7 @@ int GpuDisplay::initGL(int argc, char ** argv) {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
   glutInitWindowSize(window_width, window_height);
-  glutCreateWindow("Cuda GL Interop (VBO)");
+  glutCreateWindow("Cuda MolecularDynamics (VBO)");
   glutDisplayFunc(displayWrapper);
   glutKeyboardFunc(keyboardWrapper);
   glutMotionFunc(motionWrapper);
@@ -81,6 +84,7 @@ int GpuDisplay::initGL(int argc, char ** argv) {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(60.0, (GLfloat)window_width / (GLfloat) window_height, 0.1, 10.0);
+  glPointSize(3.0);
 
   SDK_CHECK_ERROR_GL();
   
@@ -94,13 +98,13 @@ void GpuDisplay::runCuda(struct cudaGraphicsResource **vbo_resource) {
     size_t num_bytes;
     checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&dptr, &num_bytes,
                                                          *vbo_resource));
-    launch_kernel(dptr, mesh_width, mesh_height, g_fAnim);
-
+    launch_kernel(dptr, g_fAnim);
+    
     // unmap buffer object
     checkCudaErrors(cudaGraphicsUnmapResources(1, vbo_resource, 0));
 }
 
-void GpuDisplay::launch_kernel(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {
+void GpuDisplay::launch_kernel(float4 *pos, float time) {
   kernel->executeInsideGlutLoop(pos, mesh_width, mesh_height, time);
 }
 
@@ -159,7 +163,7 @@ void GpuDisplay::display() {
   // set view matrix
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  glTranslatef(0.0, 0.0, translate_z);
+  glTranslatef(translate_x, translate_y, translate_z);
   glRotatef(rotate_x, 1.0, 0.0, 0.0);
   glRotatef(rotate_y, 0.0, 1.0, 0.0);
 
@@ -169,7 +173,7 @@ void GpuDisplay::display() {
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glColor3f(1.0, 0.0, 0.0);
-  glDrawArrays(GL_POINTS, 0, mesh_width * mesh_height);
+  glDrawArrays(GL_POINTS, 0, mesh_width * mesh_height * mesh_depth);
   glDisableClientState(GL_VERTEX_ARRAY);
 
   glutSwapBuffers();
@@ -255,8 +259,7 @@ void GpuDisplay::createVBO(GLuint *vbo, struct cudaGraphicsResource **vbo_res, u
   glBindBuffer(GL_ARRAY_BUFFER, *vbo);
 
   // initialize buffer object
-  unsigned int size = mesh_width * mesh_height * 4 * sizeof(float);
-  //unsigned int size = structure->dim.x * structure->dim.y * structure->dim.z * 4 * sizeof(float);
+  unsigned int size = mesh_width * mesh_height * mesh_height * 4 * sizeof(float);
   glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);

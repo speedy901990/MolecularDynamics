@@ -32,6 +32,7 @@ class GpuDisplay {
   unsigned int window_height;
   unsigned int mesh_width;
   unsigned int mesh_height;
+  unsigned int mesh_depth;
   // vbo variables
   GLuint vbo;
   struct cudaGraphicsResource *cuda_vbo_resource;
@@ -43,6 +44,8 @@ class GpuDisplay {
   int mouse_buttons;
   float rotate_x;
   float rotate_y;
+  float translate_x;
+  float translate_y;
   float translate_z;
   StopWatchInterface *timer;
   // Auto-Verification Code
@@ -62,7 +65,7 @@ class GpuDisplay {
 
   int initGL(int argc, char ** argv);
   void runCuda(struct cudaGraphicsResource **vbo_resource);
-  void launch_kernel(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
+  void launch_kernel(float4 *pos, float time);
 
   static void displayWrapper();
   static void keyboardWrapper(unsigned char key, int x, int y);

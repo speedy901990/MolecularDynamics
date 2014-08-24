@@ -39,7 +39,7 @@ int Structure::init(string fileName) {
       }
     }
   }
-  
+
   initCompleted = true;
   return SUCCESS;
 }
