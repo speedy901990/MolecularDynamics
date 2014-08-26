@@ -12,6 +12,7 @@ __global__ void atomsStructureTest( Structure * input, Structure * output);
 __global__ void lennardSolver( float * X, float * Y, float * Z, float * newX, float * newY, float * newZ, int atomsCount);
 __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int height, float time);
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time);
+__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, float time);
 
 // ERROR handling-----------------------------------------------------------
 

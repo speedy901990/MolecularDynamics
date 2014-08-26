@@ -33,6 +33,7 @@ int Simulation::perform() {
   GpuHandler::instance()->kernel.sendDataToDevice(structure);
   GpuHandler::instance()->kernel.execute();
   GpuHandler::instance()->kernel.getDataFromDevice();
+  GpuHandler::instance()->kernel.clearDeviceMemory();
 
   cout << "\n------------- Simulation done! ------------" << endl;
 }

@@ -33,3 +33,24 @@ int Atom::init(float x, float y, float z, float force, Status status, bool fixed
   this->fixed = fixed;
   acceleration = 1;
 }
+
+Atom& Atom::operator=(const Atom &orgAtom) {
+  if (&orgAtom == this)
+    return *this;
+
+  pos.x = orgAtom.pos.x;
+  pos.y = orgAtom.pos.y;
+  pos.z = orgAtom.pos.z;
+  
+  initPos.x = orgAtom.initPos.x;
+  initPos.y = orgAtom.initPos.y;
+  initPos.z = orgAtom.initPos.z;
+  
+  force = orgAtom.force;
+  initForce = orgAtom.initForce;
+  acceleration = orgAtom.acceleration;
+  status = orgAtom.status;
+  fixed = orgAtom.fixed;
+
+  return *this;
+}

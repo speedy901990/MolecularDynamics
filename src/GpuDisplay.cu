@@ -125,6 +125,7 @@ void GpuDisplay::runAnimation(GpuKernel *pKernel) {
 
   // start rendering mainloop
   glutMainLoop();
+
   atexit(cleanupWrapper);
 }
 
@@ -209,15 +210,18 @@ void GpuDisplay::timerEvent(int value) {
 void GpuDisplay::cleanup() {
   sdkDeleteTimer(&timer);
 
-  if (vbo) {
+  if (vbo)
     deleteVBO(&vbo, cuda_vbo_resource);
-  }
+  
+  kernel->clearDeviceMemory();
 }
 
 void GpuDisplay::keyboard(unsigned char key, int /*x*/, int /*y*/) {
   switch (key) {
   case (27) :
-    exit(EXIT_SUCCESS);
+    cout << "done!" << endl << flush;
+    cout << "\n------------- Simulation done! ------------" << endl;
+    glutLeaveMainLoop();
     break;
   }
 }

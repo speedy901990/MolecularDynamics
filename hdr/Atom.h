@@ -19,6 +19,7 @@ class Atom {
   bool fixed;
 
   int init(float x, float y, float z, float force, Status status, bool fixed = false);
+  Atom& operator=(const Atom &orgAtom);
 };
 
 #endif /* ATOM_H */

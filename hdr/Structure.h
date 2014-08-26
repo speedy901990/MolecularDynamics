@@ -21,6 +21,7 @@ class Structure {
   enum { TOP, BOTTOM, FRONT, BACK, LEFT, RIGHT, ALL_AROUND }; //forceType
   
   int init(string fileName);
+  Structure& operator=(const Structure &orgStruct);
 
  private:
   static bool initCompleted;

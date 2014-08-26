@@ -43,7 +43,7 @@ int Structure::init(string fileName) {
   initCompleted = true;
   return SUCCESS;
 }
- 
+
 int Structure::loadConfigFromFile(string fileName) {
   string fullPath = "config/" + fileName;
   ifstream cfgFile(fullPath.c_str());
@@ -66,3 +66,26 @@ int Structure::loadConfigFromFile(string fileName) {
   return SUCCESS;
 }
 
+Structure& Structure::operator=(const Structure &orgStruct) {
+  if(&orgStruct == this)
+    return *this;
+  
+  delete[] atoms;
+
+  atomsCount = orgStruct.atomsCount;
+  atoms = new Atom[atomsCount];
+  
+  for (int i=0 ; i<orgStruct.atomsCount ; i++) {
+    atoms[i] = orgStruct.atoms[i];
+  }
+
+  dim.x = orgStruct.dim.x;
+  dim.y = orgStruct.dim.y;
+  dim.z = orgStruct.dim.z;
+
+  atomsCount = orgStruct.atomsCount;
+  force = orgStruct.force;
+  forceType = orgStruct.forceType;
+
+  return *this;
+}

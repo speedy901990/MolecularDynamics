@@ -41,6 +41,40 @@ __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int 
     pos[y*width+x] = make_float4(u, w, v, 1.0f);
 }
 
+__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, float time) {
+  // Update Structure
+  input->atomsCount = output->atomsCount;
+  for (int i=0 ; i<input->atomsCount ; i++) {
+    input->atoms[i].pos.x = output->atoms[i].pos.x + time;
+    input->atoms[i].pos.y = output->atoms[i].pos.y;
+    input->atoms[i].pos.z = output->atoms[i].pos.z;
+    input->atoms[i].force = output->atoms[i].force;
+    input->atoms[i].acceleration = output->atoms[i].acceleration;
+    input->atoms[i].status = output->atoms[i].status;
+    input->atoms[i].fixed = output->atoms[i].fixed;
+  }
+  input->force = output->force;
+
+  // COMPUTING
+
+  // DISPLAY PREPARATION
+  int atomsCount = input->atomsCount;
+  int tmpCount = 0;
+  float u, v, w;
+  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
+    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
+      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
+	u = input->atoms[tmpCount].pos.x * 0.1f;
+	w = input->atoms[tmpCount].pos.y * 0.1f;
+        v = input->atoms[tmpCount].pos.z * 0.1f;
+
+	pos[tmpCount] = make_float4(u, w, v, 1.0f);
+	tmpCount++;
+      }
+    }
+  }
+}
+
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 {
   int atomsCount = input->atomsCount;
@@ -72,6 +106,11 @@ __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 
     pos[index] = make_float4(u, w, v, 1.0f);
   */
+}
+
+__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output) {
+  
+
 }
 
 __global__ void lennardSolver( float * X,

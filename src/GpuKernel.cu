@@ -17,8 +17,8 @@ int GpuKernel::allocateDeviceMemory(Structure * &atomsStructure) {
   
   HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtomsStructure, sizeof(Structure) ) );
   HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
-  //HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtomsStructure, sizeof(Structure) ) );
-  //HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
+  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtomsStructure, sizeof(Structure) ) );
+  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
   
   cout << "done!" << endl;
 
@@ -31,6 +31,10 @@ int GpuKernel::sendDataToDevice(Structure * &atomsStructure) {
   HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
   HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
   HANDLE_ERROR( cudaMemcpy( &(devicePtr.inputAtomsStructure->atoms), &(devicePtr.inputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+
+  HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
+  HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
+  HANDLE_ERROR( cudaMemcpy( &(devicePtr.outputAtomsStructure->atoms), &(devicePtr.outputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
   
   cout << "done!" << endl;
 
@@ -39,14 +43,13 @@ int GpuKernel::sendDataToDevice(Structure * &atomsStructure) {
 
 int GpuKernel::execute(bool displayOn) {
   cout << flush << "\t> Executing kernel... "<< flush;
-
   if (displayOn) {
     executeDisplayOn();
   }
   else {
     executeDisplayOff();
+    cout << "done!" << endl << flush;
   }
-  cout << "done!" << endl;
 
   return SUCCESS;
 }
@@ -67,7 +70,8 @@ void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsi
   dim3 block(8, 8, 1);
   dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
   //vbo_MD_kernel<<<grid, block>>>(pos, devicePtr.inputAtomsStructure, time);
-  vbo_MD_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, time);
+  //vbo_MD_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, time);
+  MD_LJ_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
 }
 
 int GpuKernel::getDataFromDevice() {
@@ -84,8 +88,11 @@ int GpuKernel::getDataFromDevice() {
 int GpuKernel::clearDeviceMemory() {
   HANDLE_ERROR( cudaFree( devicePtr.inputAtomsStructure ) );
   HANDLE_ERROR( cudaFree( devicePtr.outputAtomsStructure ) );
+  HANDLE_ERROR( cudaFree( devicePtr.inputAtoms ) );
+  HANDLE_ERROR( cudaFree( devicePtr.outputAtoms ) );
 
   cudaDeviceReset();
+
   return SUCCESS;
 }
 
