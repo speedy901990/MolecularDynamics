@@ -1,6 +1,6 @@
 NVCC = nvcc
 CC = g++
-NVCCFLAGS = -w -g -arch=sm_21
+NVCCFLAGS = -w -g -arch=sm_21 -use_fast_math
 LDFLAGS = -w -g -L/usr/local/cuda/lib64
 INCLUDES = -I./$(HDRDIR) -I/usr/local/cuda/include
 LIBS = -lcudart -lpthread -lGL -lGLU -lGLEW -lglut

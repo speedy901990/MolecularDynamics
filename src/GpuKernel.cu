@@ -61,7 +61,8 @@ int GpuKernel::executeDisplayOn() {
 }
 
 int GpuKernel::executeDisplayOff() {
-  atomsStructureTest<<<1,1>>>( devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  //  atomsStructureTest<<<1,1>>>( devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  MD_LJ_kernel_no_visual<<<1,1>>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
 
   return SUCCESS;
 }

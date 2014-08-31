@@ -18,6 +18,7 @@ GpuHandler * GpuHandler::instance() {
 
 int GpuHandler::init(int argc, char ** argv, Structure * &structure) {
   int ret = SUCCESS;
+  visualization = true;
 
   this->argc = argc;
   this->argv = argv;
@@ -33,7 +34,8 @@ int GpuHandler::init(int argc, char ** argv, Structure * &structure) {
   getDevices(devicesID, devicesCount);
   displayChosenDevices(devicesID, devicesCount);
 
-  GpuDisplay::instance()->init(argc, argv, structure);
+  if (visualization)
+    GpuDisplay::instance()->init(argc, argv, structure);
 
   return SUCCESS;
 }
@@ -83,6 +85,11 @@ int GpuHandler::parseInputParams() {
     devicesID = new int[devicesCount];
     devicesID[0] = 0;
   }
+
+  // visualization
+  if (checkCmdLineFlag(argc, (const char **)argv, "noVisual")) {
+    visualization = false;
+  }
   
   return SUCCESS;
 }
@@ -94,5 +101,9 @@ void GpuHandler::displayUsageInfo() {
   printf("\nMore Info:\n");
   printf("\t-help or ? (Displays this menu)\n");
   printf("\t-devicesList (Displays devices list)\n");
+  printf("\t-noVisual (Console mode only)\n");
 }
 
+bool GpuHandler::isVisualizationOn() {
+  return visualization;
+}

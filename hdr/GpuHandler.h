@@ -11,7 +11,7 @@ class GpuHandler {
  public:
   static GpuHandler * instance();
   int init(int argc, char ** argv, Structure * &structure);
-  
+  bool isVisualizationOn();
   GpuKernel kernel;
 
  private:
@@ -19,8 +19,9 @@ class GpuHandler {
   char ** argv;
   int * devicesID;
   int devicesCount;
-
+  
   GpuHandler();
+  bool visualization;
   static GpuHandler * pInstance;
   void operator=(Simulation const&);
   void displayUsageInfo();
