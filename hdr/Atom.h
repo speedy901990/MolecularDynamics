@@ -14,6 +14,11 @@ class Atom {
   float force;
   float initForce;
   float acceleration;
+
+  /*float gradientX;
+  float gradientY;
+  float gradientZ;
+  */
   enum Status{ REGULAR, BOUNDARY }; // status
   Status status;
   bool fixed;

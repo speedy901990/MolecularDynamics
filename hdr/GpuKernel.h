@@ -20,7 +20,7 @@ class GpuKernel {
   int allocateDeviceMemory(Structure * &atomsStructure);
   int sendDataToDevice(Structure * &atomsStructure);
   int execute(bool displayOn = true);
-  int getDataFromDevice();
+  int getDataFromDevice(Structure *&atomsStructure);
   int clearDeviceMemory();
   int executeDisplayOn();
   int executeDisplayOff();

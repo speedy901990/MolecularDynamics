@@ -75,13 +75,22 @@ void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsi
   MD_LJ_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
 }
 
-int GpuKernel::getDataFromDevice() {
+int GpuKernel::getDataFromDevice(Structure *&atomsStructure) {
   Structure * tmpOutputData = new Structure();
+  Atom * atoms = new Atom[atomsStructure->atomsCount];
+
   cout << "\t> Receiving data from device... ";
   // TODO@@@@@@@@@@
-  //  HANDLE_ERROR( cudaMemcpy( tmpOutputData, devicePtr.outputAtomsStructure, sizeof(Structure), cudaMemcpyDeviceToHost ) );
+  HANDLE_ERROR( cudaMemcpy( tmpOutputData, devicePtr.outputAtomsStructure, sizeof(Structure), cudaMemcpyDeviceToHost ) );
+  HANDLE_ERROR( cudaMemcpy( /*tmpOutputData->atoms*/atoms, /*devicePtr.outputAtomsStructure->atoms*/devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyDeviceToHost ) );
 
   cout << "done!" << endl;
+
+  cout << "Data:" << endl;
+  for (int i=0 ; i<atomsStructure->atomsCount ; i++) {
+    cout << "Atom " << i << " x=" << atoms[i].pos.x << " y=" << atoms[i].pos.y << " z=" << atoms[i].pos.z
+	 <<endl;//	 << " gradientX=" << atoms[i].gradientX << " gradientY=" << atoms[i].gradientY << " gradientZ=" << atoms[i].gradientZ << " force=" << atoms[i].force <<  endl;
+  }
 
   return SUCCESS;
 }
