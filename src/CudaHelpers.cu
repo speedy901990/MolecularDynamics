@@ -44,7 +44,8 @@ __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int 
 }
 
 __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, float time) {
-  int atomIndexStart = 0;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int atomIndexStart = tid;//blockIdx.x;
   int atomIndexEnd = input->atomsCount;
   float forceGradient[3] = {0.0f, 0.0f, 0.0f};
   
@@ -69,7 +70,7 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
   float force = 0;
   float modifier = 1.0f;
 
- for (int i=atomIndexStart ; i<atomIndexEnd ; i++) {
+ for (int i=atomIndexStart ; i<atomIndexEnd ; i += blockDim.x * gridDim.x) {
     forceGradient[0] = 0.0f;
     forceGradient[1] = 0.0f;
     forceGradient[2] = 0.0f;
@@ -99,7 +100,7 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
     output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0] * modifier;
     output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1] * modifier;
     output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2] * modifier;
-  }
+ }
 
   // DISPLAY PREPARATION
   int atomsCount = input->atomsCount;
