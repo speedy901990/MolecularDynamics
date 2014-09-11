@@ -17,10 +17,12 @@ __global__ void multiply( float *x, float *y, float *z, float *result , int size
     }
 }
 
+
 __global__ void atomsStructureTest( Structure * input, Structure * output) {
   //    int tid = threadIdx.x + blockIdx.x * blockDim.x;
   output->atomsCount = input->atomsCount;
 }
+
 
 __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int height, float time)
 {
@@ -65,7 +67,7 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
   float dZ = 0;
   float distance = 0;
   float force = 0;
-  float modifier = 0.01f;
+  float modifier = 1.0f;
 
  for (int i=atomIndexStart ; i<atomIndexEnd ; i++) {
     forceGradient[0] = 0.0f;
@@ -83,22 +85,15 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance == 0) {
-	//printf("\ndX=%g\t\t dY=%g\t\t dZ=%g\t\t distance=%g\t\t force=%g", dX, dY, dZ, distance, -999999);	  
+      if (distance <= 0.5 || distance >= 2.5)
 	continue;
-      }
-      force = 4 * 1.0f * (
-			  //2 * pow((1.0/distance), 13) -
-			  pow((1.0f/distance), 12) -
-			  //pow((1.0/distance), 7)
-			  pow((1.0f/distance), 6)
-			  );// / a;
-      //force = 1;
-                    // force 
-      forceGradient[0] += - (dX / distance) * force;
-      forceGradient[1] += - (dY / distance) * force;
-      forceGradient[2] += - (dZ / distance) * force;
-      //      printf("\ndX=%g\t\t dY=%g\t\t dZ=%g\t\t distance=%g\t\t force=%g", dX, dY, dZ, distance, force);	  
+      
+      // force 
+      force = 4 * 1.0f/*E*/ * ( pow((0.2f/distance), 12) -  pow((0.2f/distance), 6) );
+
+      forceGradient[0] += - (dX / distance) * force * input->atoms[i].force;
+      forceGradient[1] += - (dY / distance) * force * input->atoms[i].force;
+      forceGradient[2] += - (dZ / distance) * force * input->atoms[i].force;
     }
 
     output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0] * modifier;
@@ -124,6 +119,7 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
   }
 }
 
+
 __global__ void MD_LJ_kernel_no_visual(Structure *input, Structure *output, float time) {
   int atomIndexStart = 0;
   int atomIndexEnd = output->atomsCount;
@@ -148,9 +144,9 @@ __global__ void MD_LJ_kernel_no_visual(Structure *input, Structure *output, floa
   float dZ = 0;
   float distance = 0;
   float force = 0;
-  float modifier = 1000.0f;
-  printf("\n");
-  for (int i=atomIndexStart ; i<atomIndexEnd ; i++) {
+  float modifier = 1.0f;
+
+ for (int i=atomIndexStart ; i<atomIndexEnd ; i++) {
     forceGradient[0] = 0.0f;
     forceGradient[1] = 0.0f;
     forceGradient[2] = 0.0f;
@@ -166,29 +162,23 @@ __global__ void MD_LJ_kernel_no_visual(Structure *input, Structure *output, floa
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance == 0) {
-	printf("\ndX=%g\t\t dY=%g\t\t dZ=%g\t\t distance=%g\t\t force=%g", dX, dY, dZ, distance, -999999);	  
+      if (distance <= 0.5 || distance >= 2.5)
 	continue;
-      }
-      force = 4 * 1.0f * (
-			  //2 * pow((1.0/distance), 13) -
-			  pow((1.0f/distance), 12) -
-			  //pow((1.0/distance), 7)
-			  pow((1.0f/distance), 6)
-			  );// / a;
-      //force = 1;
-                    // force 
+      
+      // force 
+      force = 4 * 1.0f/*E*/ * ( pow((0.2f/distance), 12) -  pow((0.2f/distance), 6) );
+
       forceGradient[0] += - (dX / distance) * force;
       forceGradient[1] += - (dY / distance) * force;
       forceGradient[2] += - (dZ / distance) * force;
-      printf("\ndX=%g\t\t dY=%g\t\t dZ=%g\t\t distance=%g\t\t force=%g", dX, dY, dZ, distance, force);	  
     }
 
-    output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0]; //0.001f;//forceGradient[0] * 0.00001f;
-    output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1];//forceGradient[1] * 0.00001f;
-    output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2];//forceGradient[2] * 0.00001f;
+    output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0] * modifier;
+    output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1] * modifier;
+    output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2] * modifier;
   }
 }
+
 
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 {
