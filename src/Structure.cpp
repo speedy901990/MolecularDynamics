@@ -17,8 +17,9 @@ Structure::~Structure() {
 }
 
 int Structure::init(string fileName) {
+  srand(time(NULL));  
   int ret = SUCCESS;
-  
+
   if (initCompleted)
     return INIT_ALREADY_COMPLETED;
 
@@ -35,7 +36,8 @@ int Structure::init(string fileName) {
   for (int i=0 ; (i<dim.x) && (tmpCount < atomsCount) ; i++) {
     for (int j=0 ; (j<dim.y) && (tmpCount < atomsCount) ; j++) {
       for (int k=0 ; (k<dim.z) && (tmpCount < atomsCount); k++) {
-	atoms[tmpCount++].init(i, j, k, 1, Atom::REGULAR);
+		atoms[tmpCount++].init(i, j, k, 1, Atom::REGULAR);
+	//	atoms[tmpCount++].init(rand()%dim.x, rand()%dim.y, rand()%dim.z, 1, Atom::REGULAR);
       }
     }
   }
