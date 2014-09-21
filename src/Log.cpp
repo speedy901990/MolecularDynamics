@@ -48,6 +48,9 @@ string Log::handleError(int err) {
   case E_INSUFFICIENT_DEVICES_LIMIT:
     msg = "Insufficient devices limit.";
     break;
+  case E_NULL_PTR:
+    msg = "Null pointer passed.";
+    break;
   default:
     msg = "Unknown error";
   }

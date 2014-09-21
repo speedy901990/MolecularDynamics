@@ -31,7 +31,7 @@ int Simulation::perform() {
 
   GpuHandler::instance()->kernel.allocateDeviceMemory(structure);
   GpuHandler::instance()->kernel.sendDataToDevice(structure);
-  GpuHandler::instance()->kernel.execute(GpuHandler::instance()->isVisualizationOn());
+  GpuHandler::instance()->kernel.execute(structure, GpuHandler::instance()->isVisualizationOn());
   GpuHandler::instance()->kernel.getDataFromDevice(structure);
   GpuHandler::instance()->kernel.clearDeviceMemory();
 

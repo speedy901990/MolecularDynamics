@@ -41,14 +41,21 @@ int GpuKernel::sendDataToDevice(Structure * &atomsStructure) {
   return SUCCESS;
 }
 
-int GpuKernel::execute(bool displayOn) {
+int GpuKernel::execute(Structure * structure, bool displayOn) {
   cout << flush << "\t> Executing kernel... "<< flush;
+  if (structure == NULL) {
+    Log::instance()->toConsole(E_NULL_PTR, typeid(this).name(), __FUNCTION__, __LINE__, "Structure is NULL.");
+    exit(EXIT_FAILURE);
+  }
+  
+  this->structure = structure;
+
   if (displayOn) {
     executeDisplayOn();
   }
   else {
     executeDisplayOff();
-    cout << "done!" << endl << flush;
+    cout << "\t...done!" << endl << flush;
   }
 
   return SUCCESS;
@@ -61,23 +68,63 @@ int GpuKernel::executeDisplayOn() {
 }
 
 int GpuKernel::executeDisplayOff() {
-  //  atomsStructureTest<<<1,1>>>( devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-  MD_LJ_kernel_no_visual<<<1,1>>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-
-  return SUCCESS;
-}
-
-void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {
-  //dim3 block(2, 2, 1);
-  //dim3 grid(mesh_width / block.x, mesh_height / block.y, 1);
-  //vbo_MD_kernel<<<grid, block>>>(pos, devicePtr.inputAtomsStructure, time);
-  //vbo_MD_kernel<<<1,1>>>(pos, devicePtr.inputAtomsStructure, time);
-  //MD_LJ_kernel<<<grid,block>>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
+  int mesh_width = structure->dim.x;
+  int mesh_height = structure->dim.y;
   int threadsPerBlock = 256;
   int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
   dim3 block(threadsPerBlock, 1, 1);
   dim3 grid(blocksPerGrid, 1, 1);
-  MD_LJ_kernel<<< grid, block >>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
+  int nIter = 1;
+  cudaError_t error;
+  float msecTotal = 0.0f;
+
+  cudaEvent_t start;
+  handleTimerError(cudaEventCreate(&start), START_CREATE);
+
+  cudaEvent_t stop;
+  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
+
+  update_structure<<< 1, 1 >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  cudaDeviceSynchronize();
+
+  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
+
+  MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  cudaDeviceSynchronize();
+
+  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
+  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
+  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
+  displayPerformanceResults(msecTotal, nIter, block, grid);
+  
+  return SUCCESS;
+}
+
+void GpuKernel::displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid) {
+  float msecPerMatrixMul = msecTotal / nIter;
+  //double flopsPerMatrixMul = 2.0 * (double)dimsA.x * (double)dimsA.y * (double)dimsB.x;
+  double flopsPerMatrixMul = 27.0 * (double)structure->dim.x * (double)structure->dim.y * (double)structure->dim.z
+                           + 6.0 * (double)structure->dim.x * (double)structure->dim.y;
+  double gigaFlops = (flopsPerMatrixMul * 1.0e-9f) / (msecPerMatrixMul / 1000.0f);
+  printf("\n\t\tPerformance= %.2f GFlop/s, Time= %.3f msec, Size= %.0f Ops, WorkgroupSize= %u threads/block\n",
+	 gigaFlops,
+	 msecPerMatrixMul,
+	 flopsPerMatrixMul,
+	 block.x * block.y);
+}
+
+void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
+  dim3 block(threadsPerBlock, 1, 1);
+  dim3 grid(blocksPerGrid, 1, 1);
+
+  update_structure<<< 1, 1 >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  cudaDeviceSynchronize();
+  MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
+  cudaDeviceSynchronize();
+  prepare_display<<< 1, 1 >>>(pos, devicePtr.inputAtomsStructure); 
+  cudaDeviceSynchronize();
 }
 
 int GpuKernel::getDataFromDevice(Structure *&atomsStructure) {
@@ -85,18 +132,18 @@ int GpuKernel::getDataFromDevice(Structure *&atomsStructure) {
   Atom * atoms = new Atom[atomsStructure->atomsCount];
 
   cout << "\t> Receiving data from device... ";
-  // TODO@@@@@@@@@@
+  
   HANDLE_ERROR( cudaMemcpy( tmpOutputData, devicePtr.outputAtomsStructure, sizeof(Structure), cudaMemcpyDeviceToHost ) );
   HANDLE_ERROR( cudaMemcpy( /*tmpOutputData->atoms*/atoms, /*devicePtr.outputAtomsStructure->atoms*/devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyDeviceToHost ) );
 
   cout << "done!" << endl;
-
+  /*
   cout << "Data:" << endl;
   for (int i=0 ; i<atomsStructure->atomsCount ; i++) {
     cout << "Atom " << i << " x=" << atoms[i].pos.x << " y=" << atoms[i].pos.y << " z=" << atoms[i].pos.z
 	 <<endl;//	 << " gradientX=" << atoms[i].gradientX << " gradientY=" << atoms[i].gradientY << " gradientZ=" << atoms[i].gradientZ << " force=" << atoms[i].force <<  endl;
   }
-
+  */
   return SUCCESS;
 }
 

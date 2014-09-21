@@ -9,11 +9,11 @@
 __global__ void add( float *x, float *y, float *z, float *result , int size);
 __global__ void multiply( float *x, float *y, float *z, float *result , int size);
 __global__ void atomsStructureTest( Structure * input, Structure * output);
-__global__ void lennardSolver( float * X, float * Y, float * Z, float * newX, float * newY, float * newZ, int atomsCount);
 __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int height, float time);
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time);
-__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, float time = 0);
-__global__ void MD_LJ_kernel_no_visual(Structure *input, Structure *output, float time = 0);
+__global__ void update_structure(Structure *input, Structure *output);
+__global__ void prepare_display(float4 *pos, Structure *input);
+__global__ void MD_LJ_kernel( Structure *input, Structure *output, float time = 0);
 
 // ERROR handling-----------------------------------------------------------
 
@@ -29,10 +29,22 @@ typedef void *(*CUT_THREADROUTINE)(void *);
 pthread_t startThread(CUT_THREADROUTINE func, void * data);
 void endThread(pthread_t thread);
 
+// CUDA Timer event error handler
+enum {
+  START_CREATE,
+  STOP_CREATE,
+  START_RECORD,
+  STOP_RECORD,
+  SYNCHRONIZE,
+  ELAPSED_TIME
+};
+void handleTimerError(cudaError_t error, int type);
+
 // Other helper methodes-----------------------------------------------------
 void displayAvailableDevices();
 void displayChosenDevices(int * devicesID, int devicesCount);
 void getDevices(int * &devicesID, int &devicesCount);
+
 
 /*
 void prepareDeviceInputData(AtomsStructure *hostStructure, AtomsStructure *deviceData, int deviceCount) {

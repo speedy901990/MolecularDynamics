@@ -43,13 +43,7 @@ __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int 
     pos[y*width+x] = make_float4(u, w, v, 1.0f);
 }
 
-__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, float time) {
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int atomIndexStart = tid;//blockIdx.x;
-  int atomIndexEnd = input->atomsCount;
-  float forceGradient[3] = {0.0f, 0.0f, 0.0f};
-  
-// Update Structure
+__global__ void update_structure(Structure *input, Structure *output) {
   input->atomsCount = output->atomsCount;
   for (int i=0 ; i<input->atomsCount ; i++) {
     input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
@@ -60,8 +54,32 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
     input->atoms[i].status = output->atoms[i].status;
     input->atoms[i].fixed = output->atoms[i].fixed;
   }
-  //input->force = output->force;
+}
 
+__global__ void prepare_display(float4 *pos, Structure *input) {
+  int atomsCount = input->atomsCount;
+  int tmpCount = 0;
+  float u, v, w;
+  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
+    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
+      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
+	u = input->atoms[tmpCount].pos.x * 0.1f;
+	w = input->atoms[tmpCount].pos.y * 0.1f;
+        v = input->atoms[tmpCount].pos.z * 0.1f;
+
+	pos[tmpCount] = make_float4(u, w, v, 1.0f);
+	tmpCount++;
+      }
+    }
+  }
+}
+
+__global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  int atomIndexStart = tid;//blockIdx.x;
+  int atomIndexEnd = input->atomsCount;
+  float forceGradient[3] = {0.0f, 0.0f, 0.0f};
+  
   // COMPUTING
   float dX = 0;
   float dY = 0;
@@ -101,85 +119,7 @@ __global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output, f
     output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1] * modifier;
     output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2] * modifier;
  }
-
-  // DISPLAY PREPARATION
-  int atomsCount = input->atomsCount;
-  int tmpCount = 0;
-  float u, v, w;
-  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
-    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
-      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
-	u = input->atoms[tmpCount].pos.x * 0.1f;
-	w = input->atoms[tmpCount].pos.y * 0.1f;
-        v = input->atoms[tmpCount].pos.z * 0.1f;
-
-	pos[tmpCount] = make_float4(u, w, v, 1.0f);
-	tmpCount++;
-      }
-    }
-  }
 }
-
-
-__global__ void MD_LJ_kernel_no_visual(Structure *input, Structure *output, float time) {
-  int atomIndexStart = 0;
-  int atomIndexEnd = output->atomsCount;
-  float forceGradient[3] = {0.0f, 0.0f, 0.0f};
-  
-// Update Structure
-  input->atomsCount = output->atomsCount;
-  for (int i=0 ; i<input->atomsCount ; i++) {
-    input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
-    input->atoms[i].pos.y = output->atoms[i].pos.y;
-    input->atoms[i].pos.z = output->atoms[i].pos.z;
-    input->atoms[i].force = output->atoms[i].force;
-    input->atoms[i].acceleration = output->atoms[i].acceleration;
-    input->atoms[i].status = output->atoms[i].status;
-    input->atoms[i].fixed = output->atoms[i].fixed;
-  }
-  //input->force = output->force;
-  
-  // COMPUTING
-  float dX = 0;
-  float dY = 0;
-  float dZ = 0;
-  float distance = 0;
-  float force = 0;
-  float modifier = 1.0f;
-
- for (int i=atomIndexStart ; i<atomIndexEnd ; i++) {
-    forceGradient[0] = 0.0f;
-    forceGradient[1] = 0.0f;
-    forceGradient[2] = 0.0f;
-
-    for (int j=0 ; j<input->atomsCount ; j++) {
-      if (i == j)
-	continue;
-      
-      force = 0;
-      
-      dX = input->atoms[j].pos.x - input->atoms[i].pos.x;
-      dY = input->atoms[j].pos.y - input->atoms[i].pos.y;
-      dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
-      distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
-      
-      if (distance <= 0.5 || distance >= 2.5)
-	continue;
-      
-      // force 
-      force = 4 * 1.0f/*E*/ * ( pow((0.2f/distance), 12) -  pow((0.2f/distance), 6) );
-
-      forceGradient[0] += - (dX / distance) * force;
-      forceGradient[1] += - (dY / distance) * force;
-      forceGradient[2] += - (dZ / distance) * force;
-    }
-
-    output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0] * modifier;
-    output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1] * modifier;
-    output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2] * modifier;
-  }
-}
-
 
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 {
@@ -212,107 +152,6 @@ __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
 
     pos[index] = make_float4(u, w, v, 1.0f);
   */
-}
-
-__global__ void MD_LJ_kernel(float4 *pos, Structure *input, Structure *output) {
-  
-
-}
-
-__global__ void lennardSolver( float * X,
-                             float * Y,
-                             float * Z,
-                             float * newX,
-                             float * newY,
-                             float * newZ,
-                             int atomsCount)
-{
-    // get global id
-    int globalId = threadIdx.x + blockIdx.x * blockDim.x;
-    // get global size
-    int globalSize = gridDim.x;
-
-    int numberOfElementsForOne = (atomsCount) / globalSize;
-    // nadmiar
-    int excess = (atomsCount) - (numberOfElementsForOne * globalSize);
-
-
-    int offset, end;
-    if(globalId < excess)
-    {
-        offset = globalId * (numberOfElementsForOne + 1);
-        end = offset + numberOfElementsForOne + 1;
-    }
-    else
-    {
-        offset = globalId * numberOfElementsForOne + excess;
-        end = offset + numberOfElementsForOne;
-    }
-
-
-    // main algorithm
-    
-    //float delta = 0.001;
-
-    // potential coefficients
-    //float e = 1.5;
-    //float a = 1.0;
-
-    // zeros gradient
-    float forceGradient[3] = {0.0f, 0.0f, 0.0f};
-    
-    for(int atomIndex = offset; atomIndex < end; ++atomIndex)
-    {
-
-    forceGradient[0] = 0.0f;
-    forceGradient[1] = 0.0f;
-    forceGradient[2] = 0.0f;
-            
-        for(int i = 0; i < atomsCount; ++i)
-        {
-            // jesli indeksy nie wskazuja na ten sam atom
-            if(i != atomIndex)
-            {
-                float distanceX = X[i] - X[atomIndex];
-                float distanceY = Y[i] - Y[atomIndex];
-                float distanceZ = Z[i] - Z[atomIndex];
-
-                // calculate distance beetwen atoms
-                float distance = //sqrt(
-                                distanceX * distanceX
-                               + distanceY * distanceY
-                               + distanceZ * distanceZ
-                               //)
-                               ;
-
-                // cut distance
-                if(distance <= 2.5f * 2.5f)
-                {
-                    float force = 24 * 1.5f * (
-                                //2 * pow((1.0/distance), 13) -
-                                2 * pow((1.0f/distance), 6.5f) -
-                                //pow((1.0/distance), 7)
-                                pow((1.0f/distance), 3.5f)
-                            );// / a;
-
-                    // force gradient
-                    forceGradient[0] += - (distanceX / distance) * force;
-                    forceGradient[1] += - (distanceY / distance) * force;
-                    forceGradient[2] += - (distanceZ / distance) * force;
-                }
-            }
-        }
-
-        // calculate new position
-        newX[atomIndex] = X[atomIndex]
-                        + forceGradient[0] * 0.001f;
-
-        newY[atomIndex] = Y[atomIndex]
-                        + forceGradient[1] * 0.001f;
-
-        newZ[atomIndex] = Z[atomIndex]
-                        + forceGradient[2] * 0.001f;
-    }
 }
 
 // ERROR handling-----------------------------------------------------------
@@ -393,4 +232,35 @@ void getDevices(int * &devicesID, int &devicesCount) {
       exit(EXIT_SUCCESS);
     }
   } 
+}
+
+void handleTimerError(cudaError_t error, int type) {
+  if (error == cudaSuccess)
+    return;
+
+  switch (type) {
+  case START_CREATE:
+    fprintf(stderr, "Failed to create start event (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  case STOP_CREATE:
+    fprintf(stderr, "Failed to create stop event (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  case START_RECORD:
+    fprintf(stderr, "Failed to record start event (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  case STOP_RECORD:
+    fprintf(stderr, "Failed to record stop event (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  case SYNCHRONIZE:
+    fprintf(stderr, "Failed to synchronize on the stop event (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  case ELAPSED_TIME:
+    fprintf(stderr, "Failed to get time elapsed between events (error code %s)!\n", cudaGetErrorString(error));
+    break;
+  default:
+    fprintf(stderr, "Unknown error!\n");
+    break;
+  }
+  
+  exit(EXIT_FAILURE);
 }

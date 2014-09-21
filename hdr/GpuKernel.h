@@ -19,7 +19,7 @@ class GpuKernel {
   ~GpuKernel();
   int allocateDeviceMemory(Structure * &atomsStructure);
   int sendDataToDevice(Structure * &atomsStructure);
-  int execute(bool displayOn = true);
+  int execute(Structure * structure, bool displayOn = true);
   int getDataFromDevice(Structure *&atomsStructure);
   int clearDeviceMemory();
   int executeDisplayOn();
@@ -28,6 +28,9 @@ class GpuKernel {
 
  private:
   DevMemory devicePtr;
+  Structure * structure;
+
+  void displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid);
 };
 
 

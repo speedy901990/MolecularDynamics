@@ -20,7 +20,8 @@ enum {
   E_GPU_PARAMS = -6,
   E_PARAMS_NOT_INITIALIZED = -7,
   I_DEVICE_NOT_SELECTED = -8,
-  E_INSUFFICIENT_DEVICES_LIMIT = -9
+  E_INSUFFICIENT_DEVICES_LIMIT = -9,
+  E_NULL_PTR = -10
 };
 
 /*ostream& operator<< (ostream& stm, AtomsStructure& s){
