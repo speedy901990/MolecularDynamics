@@ -44,7 +44,7 @@ int GpuHandler::areParamsInitialized() {
   if (argc <= 1)
     return E_GPU_PARAMS;
 
-  return SUCCESS;
+   return SUCCESS;
 }
 
 int GpuHandler::parseInputParams() {

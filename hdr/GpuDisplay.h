@@ -28,6 +28,7 @@ class GpuDisplay {
   const float MAX_EPSILON_ERROR = 10.0f;
   const float THRESHOLD = 0.30f;
   const float REFRESH_DELAY = 10; //ms
+  bool pause;
   unsigned int window_width;
   unsigned int window_height;
   unsigned int mesh_width;

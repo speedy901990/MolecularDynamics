@@ -44,8 +44,10 @@ __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int 
 }
 
 __global__ void update_structure(Structure *input, Structure *output) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
   input->atomsCount = output->atomsCount;
-  for (int i=0 ; i<input->atomsCount ; i++) {
+  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
     input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
@@ -56,21 +58,35 @@ __global__ void update_structure(Structure *input, Structure *output) {
   }
 }
 
-__global__ void prepare_display(float4 *pos, Structure *input) {
-  int atomsCount = input->atomsCount;
-  int tmpCount = 0;
+__global__ void update_structure_and_display(float4 *pos, Structure *input, Structure *output) {
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
   float u, v, w;
-  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
-    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
-      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
-	u = input->atoms[tmpCount].pos.x * 0.1f;
-	w = input->atoms[tmpCount].pos.y * 0.1f;
-        v = input->atoms[tmpCount].pos.z * 0.1f;
 
-	pos[tmpCount] = make_float4(u, w, v, 1.0f);
-	tmpCount++;
-      }
-    }
+  input->atomsCount = output->atomsCount;
+  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
+    input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
+    input->atoms[i].pos.y = output->atoms[i].pos.y;
+    input->atoms[i].pos.z = output->atoms[i].pos.z;
+    input->atoms[i].force = output->atoms[i].force;
+    input->atoms[i].acceleration = output->atoms[i].acceleration;
+    input->atoms[i].status = output->atoms[i].status;
+    input->atoms[i].fixed = output->atoms[i].fixed;
+
+    u = input->atoms[i].pos.x * 0.1f;
+    w = input->atoms[i].pos.y * 0.1f;
+    v = input->atoms[i].pos.z * 0.1f;
+    pos[i] = make_float4(u, w, v, 1.0f);
+  }
+}
+
+__global__ void prepare_display(float4 *pos, Structure *input) {
+  float u, v, w;
+  int tid = threadIdx.x + blockIdx.x * blockDim.x;
+  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
+    u = input->atoms[i].pos.x * 0.1f;
+    w = input->atoms[i].pos.y * 0.1f;
+    v = input->atoms[i].pos.z * 0.1f;
+    pos[i] = make_float4(u, w, v, 1.0f);
   }
 }
 
@@ -104,7 +120,7 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance <= 0.5 || distance >= 2.5)
+      if (distance <= 1.5 || distance >= 20.5)
 	continue;
       
       // force 

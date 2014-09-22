@@ -21,6 +21,7 @@ GpuDisplay * GpuDisplay::instance() {
 }
 
 int GpuDisplay::init(int argc, char ** argv, Structure * &structure) {
+  pause = false;
   window_width  = 512;
   window_height = 512;
   mesh_width    = structure->dim.x;
@@ -157,7 +158,8 @@ void GpuDisplay::display() {
   sdkStartTimer(&timer);
 
   // run CUDA kernel to generate vertex positions
-  runCuda(&cuda_vbo_resource);
+  if (!pause)
+    runCuda(&cuda_vbo_resource);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -223,6 +225,9 @@ void GpuDisplay::keyboard(unsigned char key, int /*x*/, int /*y*/) {
     cout << "done!" << endl << flush;
     cout << "\n------------- Simulation done! ------------" << endl;
     glutLeaveMainLoop();
+    break;
+  case 'p':
+    pause = !pause;
     break;
   }
 }

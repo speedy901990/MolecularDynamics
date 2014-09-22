@@ -12,6 +12,7 @@ __global__ void atomsStructureTest( Structure * input, Structure * output);
 __global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int height, float time);
 __global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time);
 __global__ void update_structure(Structure *input, Structure *output);
+__global__ void update_structure_and_display(float4 *pos, Structure *input, Structure *output);
 __global__ void prepare_display(float4 *pos, Structure *input);
 __global__ void MD_LJ_kernel( Structure *input, Structure *output, float time = 0);
 

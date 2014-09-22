@@ -83,9 +83,10 @@ int GpuKernel::executeDisplayOff() {
 
   cudaEvent_t stop;
   handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
-
-  update_structure<<< 1, 1 >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-  cudaDeviceSynchronize();
+  
+  
+  update_structure<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  //cudaDeviceSynchronize();
 
   handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
 
@@ -119,11 +120,11 @@ void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsi
   dim3 block(threadsPerBlock, 1, 1);
   dim3 grid(blocksPerGrid, 1, 1);
 
-  update_structure<<< 1, 1 >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-  cudaDeviceSynchronize();
+  update_structure_and_display<<< grid, block >>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  //cudaDeviceSynchronize();
   MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
-  cudaDeviceSynchronize();
-  prepare_display<<< 1, 1 >>>(pos, devicePtr.inputAtomsStructure); 
+  //cudaDeviceSynchronize();
+  //prepare_display<<< grid,block >>>(pos, devicePtr.inputAtomsStructure); 
   cudaDeviceSynchronize();
 }
 
