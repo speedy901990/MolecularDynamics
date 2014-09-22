@@ -120,11 +120,11 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance <= 1.5 || distance >= 20.5)
+      if (distance <= 20|| distance >= 30)
 	continue;
       
       // force 
-      force = 4 * 1.0f/*E*/ * ( pow((0.2f/distance), 12) -  pow((0.2f/distance), 6) );
+      force = 4 * 1.0f/*E*/ * ( pow((3.0f/distance), 12) -  pow((3.0f/distance), 6) );
 
       forceGradient[0] += - (dX / distance) * force * input->atoms[i].force;
       forceGradient[1] += - (dY / distance) * force * input->atoms[i].force;
