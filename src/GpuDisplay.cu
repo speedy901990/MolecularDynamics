@@ -22,8 +22,8 @@ GpuDisplay * GpuDisplay::instance() {
 
 int GpuDisplay::init(int argc, char ** argv, Structure * &structure) {
   pause = false;
-  window_width  = 512;
-  window_height = 512;
+  window_width  = 1024;
+  window_height = 700;
   mesh_width    = structure->dim.x;
   mesh_height   = structure->dim.y;
   mesh_depth    = structure->dim.z;

@@ -63,7 +63,8 @@ __global__ void update_structure_and_display(float4 *pos, Structure *input, Stru
   float u, v, w;
 
   input->atomsCount = output->atomsCount;
-  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
+  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
+  for (int i=0 ; i<input->atomsCount ; i++) {
     input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
@@ -79,61 +80,50 @@ __global__ void update_structure_and_display(float4 *pos, Structure *input, Stru
   }
 }
 
-__global__ void prepare_display(float4 *pos, Structure *input) {
-  float u, v, w;
-  int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
-    u = input->atoms[i].pos.x * 0.1f;
-    w = input->atoms[i].pos.y * 0.1f;
-    v = input->atoms[i].pos.z * 0.1f;
-    pos[i] = make_float4(u, w, v, 1.0f);
-  }
-}
-
 __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
   int atomIndexStart = tid;//blockIdx.x;
   int atomIndexEnd = input->atomsCount;
-  float forceGradient[3] = {0.0f, 0.0f, 0.0f};
+  float force[3] = {0.0f, 0.0f, 0.0f};
   
   // COMPUTING
   float dX = 0;
   float dY = 0;
   float dZ = 0;
+  float x = 0, y = 0, z = 0;
   float distance = 0;
-  float force = 0;
-  float modifier = 1.0f;
+  //float force = 0;
+  float potential = 0;
+  float deltaTimeSquare = pow(0.05f, 2);
 
  for (int i=atomIndexStart ; i<atomIndexEnd ; i += blockDim.x * gridDim.x) {
-    forceGradient[0] = 0.0f;
-    forceGradient[1] = 0.0f;
-    forceGradient[2] = 0.0f;
+    force[0] = 0.0f;
+    force[1] = 0.0f;
+    force[2] = 0.0f;
 
     for (int j=0 ; j<input->atomsCount ; j++) {
       if (i == j)
 	continue;
       
-      force = 0;
+      //force = 0;
       
       dX = input->atoms[j].pos.x - input->atoms[i].pos.x;
       dY = input->atoms[j].pos.y - input->atoms[i].pos.y;
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance <= 20|| distance >= 30)
+      if (distance <= 0.9 || distance >= 3.0)
 	continue;
       
-      // force 
-      force = 4 * 1.0f/*E*/ * ( pow((3.0f/distance), 12) -  pow((3.0f/distance), 6) );
+      potential = 4 * (pow((1.0f/distance), 12) -  pow((1.0f/distance), 6) );
 
-      forceGradient[0] += - (dX / distance) * force * input->atoms[i].force;
-      forceGradient[1] += - (dY / distance) * force * input->atoms[i].force;
-      forceGradient[2] += - (dZ / distance) * force * input->atoms[i].force;
-    }
-
-    output->atoms[i].pos.x = input->atoms[i].pos.x + forceGradient[0] * modifier;
-    output->atoms[i].pos.y = input->atoms[i].pos.y + forceGradient[1] * modifier;
-    output->atoms[i].pos.z = input->atoms[i].pos.z + forceGradient[2] * modifier;
+      force[0] += -(dX / distance) * potential;// * input->atoms[i].force;
+      force[1] += -(dY / distance) * potential;// * input->atoms[i].force;
+      force[2] += -(dZ / distance) * potential;// * input->atoms[i].force;
+  }
+    output->atoms[i].pos.x = input->atoms[i].pos.x + 0.5 * force[0] * deltaTimeSquare;
+    output->atoms[i].pos.y = input->atoms[i].pos.y + 0.5 * force[1] * deltaTimeSquare;
+    output->atoms[i].pos.z = input->atoms[i].pos.z + 0.5 * force[2] * deltaTimeSquare;
  }
 }
 
