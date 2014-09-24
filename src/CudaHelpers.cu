@@ -92,7 +92,6 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
   float dZ = 0;
   float x = 0, y = 0, z = 0;
   float distance = 0;
-  //float force = 0;
   float potential = 0;
   float deltaTimeSquare = pow(0.05f, 2);
 
@@ -112,10 +111,12 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      if (distance <= 0.9 || distance >= 3.0)
-	continue;
+      //if (distance >= 2.5)
+      //continue;
       
       potential = 4 * (pow((1.0f/distance), 12) -  pow((1.0f/distance), 6) );
+      //if (potential > 50)
+      //continue;
 
       force[0] += -(dX / distance) * potential;// * input->atoms[i].force;
       force[1] += -(dY / distance) * potential;// * input->atoms[i].force;

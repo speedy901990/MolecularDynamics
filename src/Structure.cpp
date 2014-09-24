@@ -37,11 +37,11 @@ int Structure::init(string fileName) {
     for (int j=0 ; (j<dim.y) && (tmpCount < atomsCount) ; j++) {
       for (int k=0 ; (k<dim.z) && (tmpCount < atomsCount); k++) {
 	if (i == dim.x -1)// || j == dim.y -1)
-	  atoms[tmpCount++].init(rand()%dim.x, rand()%dim.y, rand()%dim.z, 1, Atom::REGULAR);
-	//atoms[tmpCount++].init(i, j, k, 1.0, Atom::REGULAR);
+	  //  atoms[tmpCount++].init(rand()%dim.x, rand()%dim.y, rand()%dim.z, 1, Atom::REGULAR);
+	  atoms[tmpCount++].init(i, j, k, 1.0, Atom::REGULAR);
 	else
-	  atoms[tmpCount++].init(rand()%dim.x, rand()%dim.y, rand()%dim.z, 1, Atom::REGULAR);
-	//atoms[tmpCount++].init(i, j, k, 1.0, Atom::REGULAR);
+	  //atoms[tmpCount++].init(rand()%dim.x, rand()%dim.y, rand()%dim.z, 1, Atom::REGULAR);
+	  atoms[tmpCount++].init(i, j, k, 1.0, Atom::REGULAR);
       }
     }
   }
