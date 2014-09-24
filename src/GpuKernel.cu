@@ -74,7 +74,7 @@ int GpuKernel::executeDisplayOff() {
   int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
   dim3 block(threadsPerBlock, 1, 1);
   dim3 grid(blocksPerGrid, 1, 1);
-  int nIter = 1;
+  int nIter = 1000;
   cudaError_t error;
   float msecTotal = 0.0f;
 
@@ -84,13 +84,14 @@ int GpuKernel::executeDisplayOff() {
   cudaEvent_t stop;
   handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
   
-  
-  update_structure<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-  //cudaDeviceSynchronize();
-
   handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
 
-  MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  for (int i=0 ; i<nIter ; i++) {
+    update_structure<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+    //cudaDeviceSynchronize();
+    MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
+  }
+
   cudaDeviceSynchronize();
 
   handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
@@ -104,8 +105,7 @@ int GpuKernel::executeDisplayOff() {
 void GpuKernel::displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid) {
   float msecPerMatrixMul = msecTotal / nIter;
   //double flopsPerMatrixMul = 2.0 * (double)dimsA.x * (double)dimsA.y * (double)dimsB.x;
-  double flopsPerMatrixMul = 27.0 * (double)structure->dim.x * (double)structure->dim.y * (double)structure->dim.z
-                           + 6.0 * (double)structure->dim.x * (double)structure->dim.y;
+  double flopsPerMatrixMul = 55.0 * structure->atomsCount * structure->atomsCount + 9.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
   double gigaFlops = (flopsPerMatrixMul * 1.0e-9f) / (msecPerMatrixMul / 1000.0f);
   printf("\n\t\tPerformance= %.2f GFlop/s, Time= %.3f msec, Size= %.0f Ops, WorkgroupSize= %u threads/block\n",
 	 gigaFlops,

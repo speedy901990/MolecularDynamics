@@ -47,8 +47,9 @@ __global__ void update_structure(Structure *input, Structure *output) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   input->atomsCount = output->atomsCount;
-  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
-    input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
+  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
+  for (int i=0 ; i<input->atomsCount ; i++) {
+    input->atoms[i].pos.x = output->atoms[i].pos.x;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
     input->atoms[i].force = output->atoms[i].force;
@@ -63,9 +64,9 @@ __global__ void update_structure_and_display(float4 *pos, Structure *input, Stru
   float u, v, w;
 
   input->atomsCount = output->atomsCount;
-  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x) {
+  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
   for (int i=0 ; i<input->atomsCount ; i++) {
-    input->atoms[i].pos.x = output->atoms[i].pos.x;// + time;
+    input->atoms[i].pos.x = output->atoms[i].pos.x;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
     input->atoms[i].force = output->atoms[i].force;
@@ -111,12 +112,12 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
       dZ = input->atoms[j].pos.z - input->atoms[i].pos.z;
       distance = sqrtf(pow(dX, 2) + pow(dY, 2) + pow(dZ, 2));
       
-      //if (distance >= 2.5)
-      //continue;
+      if (distance >= 2.5)
+	continue;
       
       potential = 4 * (pow((1.0f/distance), 12) -  pow((1.0f/distance), 6) );
-      //if (potential > 50)
-      //continue;
+      if (potential > 50)
+	continue;
 
       force[0] += -(dX / distance) * potential;// * input->atoms[i].force;
       force[1] += -(dY / distance) * potential;// * input->atoms[i].force;
