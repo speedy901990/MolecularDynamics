@@ -102,13 +102,13 @@ int GpuKernel::executeDisplayOff() {
 }
 
 void GpuKernel::displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid) {
-  float msecPerMatrixMul = msecTotal / nIter;
-  double flopsPerMatrixMul = 55.0 * structure->atomsCount * structure->atomsCount + 9.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
-  double gigaFlops = (flopsPerMatrixMul * 1.0e-9f) / (msecPerMatrixMul / 1000.0f);
+  float msecPerSimulation = msecTotal / nIter;
+  double flopsPerSimulation = 55.0 * structure->atomsCount * structure->atomsCount + 9.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
+  double gigaFlops = (flopsPerSimulation * 1.0e-9f) / (msecPerSimulation / 1000.0f);
   printf("\n\t\tPerformance= %.2f GFlop/s, Time= %.3f msec, Size= %.0f Ops, WorkgroupSize= %u threads/block\n",
 	 gigaFlops,
-	 msecPerMatrixMul,
-	 flopsPerMatrixMul,
+	 msecPerSimulation,
+	 flopsPerSimulation,
 	 block.x * block.y);
 }
 
