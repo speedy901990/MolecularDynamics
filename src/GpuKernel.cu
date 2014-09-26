@@ -70,7 +70,7 @@ int GpuKernel::executeDisplayOn() {
 int GpuKernel::executeDisplayOff() {
   int mesh_width = structure->dim.x;
   int mesh_height = structure->dim.y;
-  int threadsPerBlock = 256;
+  int threadsPerBlock = 1024;
   int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
   dim3 block(threadsPerBlock, 1, 1);
   dim3 grid(blocksPerGrid, 1, 1);
@@ -103,7 +103,7 @@ int GpuKernel::executeDisplayOff() {
 
 void GpuKernel::displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid) {
   float msecPerSimulation = msecTotal / nIter;
-  double flopsPerSimulation = 55.0 * structure->atomsCount * structure->atomsCount + 9.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
+  double flopsPerSimulation = 55.0 * structure->atomsCount * structure->atomsCount + 10.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
   double gigaFlops = (flopsPerSimulation * 1.0e-9f) / (msecPerSimulation / 1000.0f);
   printf("\n\t\tPerformance= %.2f GFlop/s, Time= %.3f msec, Size= %.0f Ops, WorkgroupSize= %u threads/block\n",
 	 gigaFlops,
@@ -119,10 +119,7 @@ void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsi
   dim3 grid(blocksPerGrid, 1, 1);
 
   update_structure_and_display<<< grid, block >>>(pos, devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure);
-  //cudaDeviceSynchronize();
   MD_LJ_kernel<<< grid, block >>>(devicePtr.inputAtomsStructure, devicePtr.outputAtomsStructure, time);
-  //cudaDeviceSynchronize();
-  //prepare_display<<< grid,block >>>(pos, devicePtr.inputAtomsStructure); 
   cudaDeviceSynchronize();
 }
 

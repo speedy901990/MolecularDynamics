@@ -47,15 +47,17 @@ __global__ void update_structure(Structure *input, Structure *output) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
   input->atomsCount = output->atomsCount;
-  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
-  for (int i=0 ; i<input->atomsCount ; i++) {
+
+  #pragma unroll
+  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
+    //for (int i=0 ; i<input->atomsCount ; i++) {
     input->atoms[i].pos.x = output->atoms[i].pos.x;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
-    input->atoms[i].force = output->atoms[i].force;
+    /*input->atoms[i].force = output->atoms[i].force;
     input->atoms[i].acceleration = output->atoms[i].acceleration;
     input->atoms[i].status = output->atoms[i].status;
-    input->atoms[i].fixed = output->atoms[i].fixed;
+    input->atoms[i].fixed = output->atoms[i].fixed;*/
   }
 }
 
@@ -64,15 +66,17 @@ __global__ void update_structure_and_display(float4 *pos, Structure *input, Stru
   float u, v, w;
 
   input->atomsCount = output->atomsCount;
-  //for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
-  for (int i=0 ; i<input->atomsCount ; i++) {
+
+  #pragma unroll
+  for (int i=tid ; i<input->atomsCount ; i+=blockDim.x * gridDim.x) {
+    //for (int i=0 ; i<input->atomsCount ; i++) {
     input->atoms[i].pos.x = output->atoms[i].pos.x;
     input->atoms[i].pos.y = output->atoms[i].pos.y;
     input->atoms[i].pos.z = output->atoms[i].pos.z;
-    input->atoms[i].force = output->atoms[i].force;
+    /*input->atoms[i].force = output->atoms[i].force;
     input->atoms[i].acceleration = output->atoms[i].acceleration;
     input->atoms[i].status = output->atoms[i].status;
-    input->atoms[i].fixed = output->atoms[i].fixed;
+    input->atoms[i].fixed = output->atoms[i].fixed;*/
 
     u = input->atoms[i].pos.x * 0.1f;
     w = input->atoms[i].pos.y * 0.1f;
@@ -83,29 +87,29 @@ __global__ void update_structure_and_display(float4 *pos, Structure *input, Stru
 
 __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
   int tid = threadIdx.x + blockIdx.x * blockDim.x;
-  int atomIndexStart = tid;//blockIdx.x;
+  int atomIndexStart = tid;
   int atomIndexEnd = input->atomsCount;
   float force[3] = {0.0f, 0.0f, 0.0f};
   
   // COMPUTING
-  float dX = 0;
-  float dY = 0;
-  float dZ = 0;
-  float x = 0, y = 0, z = 0;
-  float distance = 0;
-  float potential = 0;
-  float deltaTimeSquare = pow(0.05f, 2);
+  register float dX = 0.0f;
+  register float dY = 0.0f;
+  register float dZ = 0.0f;
+  register float x = 0.0f, y = 0.0f, z = 0.0f;
+  register float distance = 0.0f;
+  register float potential = 0.0f;
+  register float deltaTimeSquare = 0.0025;//pow(0.05f, 2);
 
- for (int i=atomIndexStart ; i<atomIndexEnd ; i += blockDim.x * gridDim.x) {
+  #pragma unroll
+  for (register int i=atomIndexStart ; i<atomIndexEnd ; i += blockDim.x * gridDim.x) {
     force[0] = 0.0f;
     force[1] = 0.0f;
     force[2] = 0.0f;
-
-    for (int j=0 ; j<input->atomsCount ; j++) {
+    
+    #pragma unroll
+    for (register int j=0 ; j<input->atomsCount ; j++) {
       if (i == j)
 	continue;
-      
-      //force = 0;
       
       dX = input->atoms[j].pos.x - input->atoms[i].pos.x;
       dY = input->atoms[j].pos.y - input->atoms[i].pos.y;
@@ -115,8 +119,8 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
       if (distance >= 2.5)
 	continue;
       
-      potential = 4 * (pow((1.0f/distance), 12) -  pow((1.0f/distance), 6) );
-      if (potential > 50)
+      potential = 4.0f * (pow((1.0f/distance), 12) -  pow((1.0f/distance), 6) );
+      if (potential > 50.0f)
 	continue;
 
       force[0] += -(dX / distance) * potential;// * input->atoms[i].force;
