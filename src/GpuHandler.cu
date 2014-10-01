@@ -107,3 +107,11 @@ void GpuHandler::displayUsageInfo() {
 bool GpuHandler::isVisualizationOn() {
   return visualization;
 }
+
+void GpuHandler::processInputStructure() {
+  if (devicesID == 1)
+    return;
+
+  // prepare structure for multi GPU
+  
+}

@@ -27,6 +27,7 @@ class GpuHandler {
   void displayUsageInfo();
   int areParamsInitialized();
   int parseInputParams();
+  void processInputStructure();
 };
 
 #endif /* GPU_HANDLER_H */
