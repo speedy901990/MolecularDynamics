@@ -26,7 +26,10 @@ int Simulation::perform() {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  
+    
+  GpuHandler::instance()->processInputStructure();
+  exit(EXIT_SUCCESS);
+
   cout << "\n--------------- Computing ----------------" << endl << endl;
 
   GpuHandler::instance()->kernel.allocateDeviceMemory(structure);

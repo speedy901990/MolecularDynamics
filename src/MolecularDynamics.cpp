@@ -3,9 +3,9 @@
 #include "Simulation.h"
 
 int main(int argc, char** argv) {
-    Structure * atomsStruct = new Structure();
-    atomsStruct->init("structure.cfg");
-    Simulation::instance()->init("simulation.cfg", atomsStruct, argc, argv);
+    Structure * structure = new Structure();
+    structure->init("structure.cfg");
+    Simulation::instance()->init("simulation.cfg", structure, argc, argv);
     Simulation::instance()->perform();
     
   /*

@@ -10,15 +10,18 @@
 class GpuHandler {
  public:
   static GpuHandler * instance();
+  GpuKernel kernel;
+
   int init(int argc, char ** argv, Structure * &structure);
   bool isVisualizationOn();
-  GpuKernel kernel;
+  void processInputStructure();
 
  private:
   int argc;
   char ** argv;
   int * devicesID;
   int devicesCount;
+  Structure *structure;
   
   GpuHandler();
   bool visualization;
@@ -27,7 +30,7 @@ class GpuHandler {
   void displayUsageInfo();
   int areParamsInitialized();
   int parseInputParams();
-  void processInputStructure();
+  void divideStructureForMultiGpu();
 };
 
 #endif /* GPU_HANDLER_H */

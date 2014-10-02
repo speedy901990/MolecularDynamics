@@ -27,6 +27,7 @@ class Structure {
   static bool initCompleted;
 
   int loadConfigFromFile(string fileName);
+  void divideStructureForMultiGpu();
 };
 
 #endif /* STRUCTURE_H */
