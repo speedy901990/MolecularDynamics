@@ -41,7 +41,7 @@ int GpuKernel::sendDataToDevice(Structure * &atomsStructure) {
   return SUCCESS;
 }
 
-int GpuKernel::execute(Structure * structure, bool displayOn) {
+int GpuKernel::execute(Structure * structure, int devicesCount, bool displayOn) {
   cout << flush << "\t> Executing kernel... "<< flush;
   if (structure == NULL) {
     Log::instance()->toConsole(E_NULL_PTR, typeid(this).name(), __FUNCTION__, __LINE__, "Structure is NULL.");
@@ -54,7 +54,10 @@ int GpuKernel::execute(Structure * structure, bool displayOn) {
     executeDisplayOn();
   }
   else {
-    executeDisplayOff();
+    if (devicesCount != 1)
+      executeMultiGpu();
+    else
+      executeDisplayOff();
     cout << "\t...done!" << endl << flush;
   }
 
@@ -65,6 +68,10 @@ int GpuKernel::executeDisplayOn() {
   GpuDisplay::instance()->runAnimation(this);
 
   return SUCCESS;
+}
+
+int GpuKernel::executeMultiGpu() {
+
 }
 
 int GpuKernel::executeDisplayOff() {

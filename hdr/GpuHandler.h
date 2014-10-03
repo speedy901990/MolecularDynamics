@@ -15,6 +15,7 @@ class GpuHandler {
   int init(int argc, char ** argv, Structure * &structure);
   bool isVisualizationOn();
   void processInputStructure();
+  int getDevicesCount();
 
  private:
   int argc;

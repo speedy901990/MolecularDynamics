@@ -133,17 +133,26 @@ void GpuHandler::divideStructureForMultiGpu() {
     multiGpuStruct[devID].atoms = new Atom[chunkSize];
     multiGpuStruct[devID].atomsCount = chunkSize;
 
-    printf("start: %d\tend: %d\n", startIdx, endIdx);
+    //printf("start: %d\tend: %d\n", startIdx, endIdx);
 
     for (idx = startIdx ; idx<endIdx ; idx++, newAtomsIdx++) {
       multiGpuStruct[devID].atoms[newAtomsIdx] = structure->atoms[idx];
     }
   }
 
+  delete structure;
+  structure = multiGpuStruct;
+
+  /*
   for (int devID=0 ; devID<devicesCount ; devID++) {
     printf("Device %d:\n", devID);
-    for (int i=0 ; i<multiGpuStruct->atomsCount ; i++) {
-      printf("Atom %d:\t\t%f\t%f\t%f\n", i, multiGpuStruct[devID].atoms[i].pos.x, multiGpuStruct[devID].atoms[i].pos.y, multiGpuStruct[devID].atoms[i].pos.z);
+    for (int i=0 ; i<structure[devID].atomsCount ; i++) {
+      printf("Atom %d:\t\t%f\t%f\t%f\n", i, structure[devID].atoms[i].pos.x, structure[devID].atoms[i].pos.y, structure[devID].atoms[i].pos.z);
     }
   }
+  */
+}
+
+int GpuHandler::getDevicesCount() {
+  return devicesCount;
 }

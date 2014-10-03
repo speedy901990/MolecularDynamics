@@ -19,11 +19,12 @@ class GpuKernel {
   ~GpuKernel();
   int allocateDeviceMemory(Structure * &atomsStructure);
   int sendDataToDevice(Structure * &atomsStructure);
-  int execute(Structure * structure, bool displayOn = true);
+  int execute(Structure * structure, int devicesCount, bool displayOn = true);
   int getDataFromDevice(Structure *&atomsStructure);
   int clearDeviceMemory();
   int executeDisplayOn();
   int executeDisplayOff();
+  int executeMultiGpu();
   void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 
  private:
