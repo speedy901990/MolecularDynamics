@@ -12,29 +12,55 @@ GpuKernel::~GpuKernel() {
 
 }
 
-int GpuKernel::allocateDeviceMemory(Structure * &atomsStructure) {
+int GpuKernel::allocateDeviceMemory(Structure * &atomsStructure, int deviceCount) {
   cout << "\t> Allocating device memory... ";
   
-  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtomsStructure, sizeof(Structure) ) );
-  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
-  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtomsStructure, sizeof(Structure) ) );
-  HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
-  
+  if (deviceCount == 1) {
+    HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtomsStructure, sizeof(Structure) ) );
+    HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.inputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
+    HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtomsStructure, sizeof(Structure) ) );
+    HANDLE_ERROR( cudaMalloc( (void**)&devicePtr.outputAtoms, sizeof(Atom) * atomsStructure->atomsCount ) );
+  }
+  else {
+    multiDevicePtr = new DevMemory[deviceCount];
+    for (int i=0 ; i<deviceCount ; i++) {
+      cudaSetDevice(i);
+      HANDLE_ERROR( cudaMalloc( (void**)&multiDevicePtr[i].inputAtomsStructure, sizeof(Structure) ) );
+      HANDLE_ERROR( cudaMalloc( (void**)&multiDevicePtr[i].inputAtoms, sizeof(Atom) * atomsStructure[i].atomsCount ) );
+      HANDLE_ERROR( cudaMalloc( (void**)&multiDevicePtr[i].outputAtomsStructure, sizeof(Structure) ) );
+      HANDLE_ERROR( cudaMalloc( (void**)&multiDevicePtr[i].outputAtoms, sizeof(Atom) * atomsStructure[i].atomsCount ) );
+    }
+  }
+
   cout << "done!" << endl;
 
   return SUCCESS;
 }
 
-int GpuKernel::sendDataToDevice(Structure * &atomsStructure) {
+int GpuKernel::sendDataToDevice(Structure * &atomsStructure, int deviceCount) {
   cout << "\t> Sending data to device... " << flush;
   
-  HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
-  HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
-  HANDLE_ERROR( cudaMemcpy( &(devicePtr.inputAtomsStructure->atoms), &(devicePtr.inputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+  if (deviceCount == 1) {
+    HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
+    HANDLE_ERROR( cudaMemcpy( devicePtr.inputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
+    HANDLE_ERROR( cudaMemcpy( &(devicePtr.inputAtomsStructure->atoms), &(devicePtr.inputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
 
-  HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
-  HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
-  HANDLE_ERROR( cudaMemcpy( &(devicePtr.outputAtomsStructure->atoms), &(devicePtr.outputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+    HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
+    HANDLE_ERROR( cudaMemcpy( devicePtr.outputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
+    HANDLE_ERROR( cudaMemcpy( &(devicePtr.outputAtomsStructure->atoms), &(devicePtr.outputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+  }
+  else {
+    for (int i=0 ; i<deviceCount ; i++) {
+      cudaSetDevice(i);
+      HANDLE_ERROR( cudaMemcpy( multiDevicePtr[i].inputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
+      HANDLE_ERROR( cudaMemcpy( multiDevicePtr[i].inputAtoms, atomsStructure->atoms, sizeof(Atom) * atomsStructure->atomsCount, cudaMemcpyHostToDevice ) );
+      HANDLE_ERROR( cudaMemcpy( &(multiDevicePtr[i].inputAtomsStructure->atoms), &(devicePtr.inputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+
+      HANDLE_ERROR( cudaMemcpy( multiDevicePtr[i].outputAtomsStructure, atomsStructure, sizeof(Structure), cudaMemcpyHostToDevice ) );
+      HANDLE_ERROR( cudaMemcpy( multiDevicePtr[i].outputAtoms, atomsStructure[i].atoms, sizeof(Atom) * atomsStructure[i].atomsCount, cudaMemcpyHostToDevice ) );
+      HANDLE_ERROR( cudaMemcpy( &(multiDevicePtr[i].outputAtomsStructure->atoms), &(multiDevicePtr[i].outputAtoms), sizeof(Atom *), cudaMemcpyHostToDevice ) );
+    }
+  }
   
   cout << "done!" << endl;
 
@@ -55,7 +81,7 @@ int GpuKernel::execute(Structure * structure, int devicesCount, bool displayOn) 
   }
   else {
     if (devicesCount != 1)
-      executeMultiGpu();
+      executeMultiGpu(devicesCount);
     else
       executeDisplayOff();
     cout << "\t...done!" << endl << flush;
@@ -70,8 +96,49 @@ int GpuKernel::executeDisplayOn() {
   return SUCCESS;
 }
 
-int GpuKernel::executeMultiGpu() {
+int GpuKernel::executeMultiGpu(int deviceCount) {
+  pthread_t * threads = new pthread_t[deviceCount];
+  for (int i=0 ; i<deviceCount ; i++)
+    threads[i] = startThread(&GpuKernel::executeThreadKernel, &i);
+  for (int i=0 ; i<deviceCount ; i++)
+    endThread( threads[i] );
+  
+  return SUCCESS;
+}
 
+void * GpuKernel::executeThreadKernel(void * x) {
+  int tid = 2;
+  int * xxx = (int *)x;
+  /*int mesh_width = structure[tid].dim.x;
+  int mesh_height = structure[tid].dim.y;
+  int threadsPerBlock = 1024;
+  int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
+  dim3 block(threadsPerBlock, 1, 1);
+  dim3 grid(blocksPerGrid, 1, 1);
+  int nIter = 100;
+  cudaError_t error;
+  float msecTotal = 0.0f;
+  
+  //  cudaEvent_t start;
+  //  handleTimerError(cudaEventCreate(&start), START_CREATE);
+
+  //  cudaEvent_t stop;
+  //  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
+  
+  //  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
+
+  for (int i=0 ; i<nIter ; i++) {
+    update_structure<<< grid, block >>>(multiDevicePtr[tid].inputAtomsStructure, multiDevicePtr[tid].outputAtomsStructure);
+    MD_LJ_kernel<<< grid, block >>>(multiDevicePtr[tid].inputAtomsStructure, multiDevicePtr[i].outputAtomsStructure);
+  }
+
+  cudaDeviceSynchronize();
+  */
+  //  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
+  //  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
+  //  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
+  //  displayPerformanceResults(msecTotal, nIter, block, grid);
+  
 }
 
 int GpuKernel::executeDisplayOff() {
@@ -130,7 +197,7 @@ void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsi
   cudaDeviceSynchronize();
 }
 
-int GpuKernel::getDataFromDevice(Structure *&atomsStructure) {
+int GpuKernel::getDataFromDevice(Structure *&atomsStructure, int deviceCount) {
   Structure * tmpOutputData = new Structure();
   Atom * atoms = new Atom[atomsStructure->atomsCount];
 

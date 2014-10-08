@@ -26,16 +26,15 @@ int Simulation::perform() {
     Log::instance()->toConsole(ret, typeid(this).name(), __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
   }
-    
-  GpuHandler::instance()->processInputStructure();
-  exit(EXIT_SUCCESS);
 
   cout << "\n--------------- Computing ----------------" << endl << endl;
 
-  GpuHandler::instance()->kernel.allocateDeviceMemory(structure);
-  GpuHandler::instance()->kernel.sendDataToDevice(structure);
+  GpuHandler::instance()->processInputStructure(); 
+  exit(EXIT_SUCCESS);
+  GpuHandler::instance()->kernel.allocateDeviceMemory(structure, GpuHandler::instance()->getDevicesCount());
+  GpuHandler::instance()->kernel.sendDataToDevice(structure, GpuHandler::instance()->getDevicesCount());
   GpuHandler::instance()->kernel.execute(structure, GpuHandler::instance()->getDevicesCount(), GpuHandler::instance()->isVisualizationOn());
-  GpuHandler::instance()->kernel.getDataFromDevice(structure);
+  GpuHandler::instance()->kernel.getDataFromDevice(structure, GpuHandler::instance()->getDevicesCount());
   GpuHandler::instance()->kernel.clearDeviceMemory();
 
   cout << "\n------------- Simulation done! ------------" << endl;

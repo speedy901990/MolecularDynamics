@@ -177,7 +177,7 @@ void HandleError( cudaError_t err, const char *file, int line ) {
 }
 
 // Threading for multi GPU support------------------------------------------
-typedef void *(*CUT_THREADROUTINE)(void *);
+//typedef void *(GpuKernel::*CUT_THREADROUTINE)(void *);
 
 pthread_t startThread(CUT_THREADROUTINE func, void * data){
     pthread_t thread;

@@ -17,18 +17,20 @@ class GpuKernel {
  public:
   GpuKernel();
   ~GpuKernel();
-  int allocateDeviceMemory(Structure * &atomsStructure);
-  int sendDataToDevice(Structure * &atomsStructure);
+  int allocateDeviceMemory(Structure * &atomsStructure, int deviceCount);
+  int sendDataToDevice(Structure * &atomsStructure, int devicesCount);
   int execute(Structure * structure, int devicesCount, bool displayOn = true);
-  int getDataFromDevice(Structure *&atomsStructure);
+  int getDataFromDevice(Structure *&atomsStructure, int devicesCount);
   int clearDeviceMemory();
+  static void * executeThreadKernel(void * x);
   int executeDisplayOn();
   int executeDisplayOff();
-  int executeMultiGpu();
+  int executeMultiGpu(int deviceCount);
   void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 
  private:
   DevMemory devicePtr;
+  DevMemory * multiDevicePtr;
   Structure * structure;
 
   void displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid);
