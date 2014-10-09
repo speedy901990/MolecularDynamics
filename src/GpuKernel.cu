@@ -3,6 +3,7 @@
 #include "GpuKernel.h"
 #include "Log.h"
 #include "CudaHelpers.h"
+#include "GpuThread.h"
 
 GpuKernel::GpuKernel() {
 
@@ -98,18 +99,23 @@ int GpuKernel::executeDisplayOn() {
 
 int GpuKernel::executeMultiGpu(int deviceCount) {
   pthread_t * threads = new pthread_t[deviceCount];
-  for (int i=0 ; i<deviceCount ; i++)
-    threads[i] = startThread(&GpuKernel::executeThreadKernel, &i);
+  for (int i=0 ; i<deviceCount ; i++) {
+    GpuThread * threadData = new GpuThread(this, i);
+    threads[i] = startThread(executeGpuThreadKernel, (void *)threadData);
+  }
+  
   for (int i=0 ; i<deviceCount ; i++)
     endThread( threads[i] );
   
+  cout << endl;
+  for (int i=0 ; i<deviceCount ; i++)
+    cout << "AtomsCount tid " << i << ": " << structure[i].atomsCount << endl;
+
   return SUCCESS;
 }
 
-void * GpuKernel::executeThreadKernel(void * x) {
-  int tid = 2;
-  int * xxx = (int *)x;
-  /*int mesh_width = structure[tid].dim.x;
+void GpuKernel::executeThreadKernel(int tid) {
+  int mesh_width = structure[tid].dim.x;
   int mesh_height = structure[tid].dim.y;
   int threadsPerBlock = 1024;
   int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
@@ -126,19 +132,19 @@ void * GpuKernel::executeThreadKernel(void * x) {
   //  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
   
   //  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
-
+  /*
   for (int i=0 ; i<nIter ; i++) {
     update_structure<<< grid, block >>>(multiDevicePtr[tid].inputAtomsStructure, multiDevicePtr[tid].outputAtomsStructure);
     MD_LJ_kernel<<< grid, block >>>(multiDevicePtr[tid].inputAtomsStructure, multiDevicePtr[i].outputAtomsStructure);
   }
-
+  
   cudaDeviceSynchronize();
   */
   //  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
   //  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
   //  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
   //  displayPerformanceResults(msecTotal, nIter, block, grid);
-  
+  structure[tid].atomsCount = -1;
 }
 
 int GpuKernel::executeDisplayOff() {
@@ -217,14 +223,23 @@ int GpuKernel::getDataFromDevice(Structure *&atomsStructure, int deviceCount) {
   return SUCCESS;
 }
 
-int GpuKernel::clearDeviceMemory() {
-  HANDLE_ERROR( cudaFree( devicePtr.inputAtomsStructure ) );
-  HANDLE_ERROR( cudaFree( devicePtr.outputAtomsStructure ) );
-  HANDLE_ERROR( cudaFree( devicePtr.inputAtoms ) );
-  HANDLE_ERROR( cudaFree( devicePtr.outputAtoms ) );
+int GpuKernel::clearDeviceMemory(int devicesCount) {
+  if (devicesCount == 1) {
+    HANDLE_ERROR( cudaFree( devicePtr.inputAtomsStructure ) );
+    HANDLE_ERROR( cudaFree( devicePtr.outputAtomsStructure ) );
+    HANDLE_ERROR( cudaFree( devicePtr.inputAtoms ) );
+    HANDLE_ERROR( cudaFree( devicePtr.outputAtoms ) );
+  }
+  else {
+    for (int i=0 ; i<devicesCount ; i++) {
+      HANDLE_ERROR( cudaFree( multiDevicePtr[i].inputAtomsStructure ) );
+      HANDLE_ERROR( cudaFree( multiDevicePtr[i].outputAtomsStructure ) );
+      HANDLE_ERROR( cudaFree( multiDevicePtr[i].inputAtoms ) );
+      HANDLE_ERROR( cudaFree( multiDevicePtr[i].outputAtoms ) );
+    }
+  }
 
   cudaDeviceReset();
 
   return SUCCESS;
 }
-

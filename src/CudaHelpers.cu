@@ -1,23 +1,6 @@
 #include "CudaHelpers.h"
 
 //------------------- Kernels ----------------------------------
-__global__ void add( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    while (tid < size) {
-        result[tid] = x[tid] + y[tid] + z[tid];
-        tid += blockDim.x * gridDim.x;
-    }
-}
-
-__global__ void multiply( float *x, float *y, float *z, float *result , int size) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    while (tid < size) {
-        result[tid] = x[tid] * y[tid] * z[tid];
-        tid += blockDim.x * gridDim.x;
-    }
-}
-
-
 __global__ void atomsStructureTest( Structure * input, Structure * output) {
   //    int tid = threadIdx.x + blockIdx.x * blockDim.x;
   output->atomsCount = input->atomsCount;
@@ -133,39 +116,6 @@ __global__ void MD_LJ_kernel(Structure *input, Structure *output, float time) {
  }
 }
 
-__global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time)
-{
-  int atomsCount = input->atomsCount;
-  int tmpCount = 0;
-  float u, v, w;
-  for (int i=0 ; (i<input->dim.x) && (tmpCount < atomsCount) ; i++) {
-    for (int j=0 ; (j<input->dim.y) && (tmpCount < atomsCount) ; j++) {
-      for (int k=0 ; (k<input->dim.z) && (tmpCount < atomsCount); k++) {
-	u = input->atoms[tmpCount].pos.x * 0.1f;
-	w = input->atoms[tmpCount].pos.y * 0.1f;
-        v = input->atoms[tmpCount].pos.z * 0.1f;
-
-	pos[tmpCount] = make_float4(u, w, v, 1.0f);
-	tmpCount++;
-      }
-    }
-  }
-  /*
-    unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
-    unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
-    unsigned int index = y * input->dim.x + x;
-
-    float u = input->atoms[index].pos.x * 0.1f;
-
-    float w = input->atoms[index].pos.y * 0.1f;
-
-    float v = input->atoms[index].pos.z * 0.1f;
-    
-
-    pos[index] = make_float4(u, w, v, 1.0f);
-  */
-}
-
 // ERROR handling-----------------------------------------------------------
 
 void HandleError( cudaError_t err, const char *file, int line ) {
@@ -177,7 +127,7 @@ void HandleError( cudaError_t err, const char *file, int line ) {
 }
 
 // Threading for multi GPU support------------------------------------------
-//typedef void *(GpuKernel::*CUT_THREADROUTINE)(void *);
+//typedef void *(*CUT_THREADROUTINE)(void *);
 
 pthread_t startThread(CUT_THREADROUTINE func, void * data){
     pthread_t thread;
@@ -185,10 +135,13 @@ pthread_t startThread(CUT_THREADROUTINE func, void * data){
     return thread;
 }
 
-void endThread(pthread_t thread){
+void endThread(pthread_t thread) {
     pthread_join(thread, NULL);
 }
 
+void * executeGpuThreadKernel(void * data) {
+
+}
 // Other helper methodes-----------------------------------------------------
 void displayAvailableDevices() {
     int deviceCount;
