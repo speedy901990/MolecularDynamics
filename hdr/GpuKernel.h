@@ -4,6 +4,7 @@
 #include "Global.h"
 #include "Structure.h"
 #include "GpuDisplay.h"
+#include "PerformanceStatistics.h"
 
 struct DevMemory {
   Structure * inputAtomsStructure;
@@ -25,7 +26,7 @@ class GpuKernel {
   int executeDisplayOn();
   int executeDisplayOff();
   int executeMultiGpu(int deviceCount);
-  void executeThreadKernel(int tid);
+  PerformanceStatistics * executeThreadKernel(int tid);
   void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 
  private:
@@ -33,7 +34,7 @@ class GpuKernel {
   DevMemory * multiDevicePtr;
   Structure * structure;
 
-  void displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid);
+  void displayPerformanceResults(PerformanceStatistics *p);
 };
 
 

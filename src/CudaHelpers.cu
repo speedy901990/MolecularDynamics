@@ -142,7 +142,7 @@ void endThread(pthread_t thread) {
 
 void * executeGpuThreadKernel(void * threadData) {
   GpuThread * data = (GpuThread *) threadData;
-  data->kernel->executeThreadKernel(data->tid);
+  data->performance = data->kernel->executeThreadKernel(data->tid);
 }
 // Other helper methodes-----------------------------------------------------
 void displayAvailableDevices() {

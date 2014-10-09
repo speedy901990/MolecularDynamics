@@ -98,19 +98,28 @@ int GpuKernel::executeDisplayOn() {
 }
 
 int GpuKernel::executeMultiGpu(int deviceCount) {
+  
   pthread_t * threads = new pthread_t[deviceCount];
+  GpuThread * threadsData = new GpuThread[deviceCount];
+
   for (int i=0 ; i<deviceCount ; i++) {
-    GpuThread * threadData = new GpuThread(this, i);
-    threads[i] = startThread(executeGpuThreadKernel, (void *)threadData);
+    threadsData[i].kernel = this;
+    threadsData[i].tid = i;
+    threads[i] = startThread(executeGpuThreadKernel, (void *)threadsData);
   }
   
   for (int i=0 ; i<deviceCount ; i++)
     endThread( threads[i] );
   
+  printf("------- TOTAL PERFORMANCE: --------");
+  //TODO FIX segfault
+  //for (int i=0 ; i<deviceCount ; i++)
+  //  displayPerformanceResults(threadsData[i].performance);
+  
   return SUCCESS;
 }
 
-void GpuKernel::executeThreadKernel(int tid) {
+PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   int mesh_width = structure[tid].dim.x;
   int mesh_height = structure[tid].dim.y;
   int threadsPerBlock = 1024;
@@ -121,13 +130,13 @@ void GpuKernel::executeThreadKernel(int tid) {
   cudaError_t error;
   float msecTotal = 0.0f;
   
-  //  cudaEvent_t start;
-  //  handleTimerError(cudaEventCreate(&start), START_CREATE);
-
-  //  cudaEvent_t stop;
-  //  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
+  cudaEvent_t start;
+  handleTimerError(cudaEventCreate(&start), START_CREATE);
   
-  //  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
+  cudaEvent_t stop;
+  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
+  
+  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
   /*
   for (int i=0 ; i<nIter ; i++) {
     update_structure<<< grid, block >>>(multiDevicePtr[tid].inputAtomsStructure, multiDevicePtr[tid].outputAtomsStructure);
@@ -136,11 +145,14 @@ void GpuKernel::executeThreadKernel(int tid) {
   
   cudaDeviceSynchronize();
   */
-  //  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
-  //  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
-  //  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
-  //  displayPerformanceResults(msecTotal, nIter, block, grid);
-  structure[tid].atomsCount = -1 * tid;
+  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
+  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
+  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
+  
+  PerformanceStatistics * performance = new PerformanceStatistics(msecTotal, nIter, block, grid);
+  displayPerformanceResults(performance);
+
+  return performance;
 }
 
 int GpuKernel::executeDisplayOff() {
@@ -172,20 +184,22 @@ int GpuKernel::executeDisplayOff() {
   handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
   handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
   handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
-  displayPerformanceResults(msecTotal, nIter, block, grid);
+
+  PerformanceStatistics * performance = new PerformanceStatistics(msecTotal, nIter, block, grid);
+  displayPerformanceResults(performance);
   
   return SUCCESS;
 }
 
-void GpuKernel::displayPerformanceResults(float msecTotal, int nIter, dim3 block, dim3 grid) {
-  float msecPerSimulation = msecTotal / nIter;
+void GpuKernel::displayPerformanceResults(PerformanceStatistics *p) {
+  float msecPerSimulation = p->msecTotal / p->nIter;
   double flopsPerSimulation = 55.0 * structure->atomsCount * structure->atomsCount + 10.0 * structure->atomsCount + 2 * (structure->atomsCount + 256 - 1 )/ 256;
   double gigaFlops = (flopsPerSimulation * 1.0e-9f) / (msecPerSimulation / 1000.0f);
   printf("\n\t\tPerformance= %.2f GFlop/s, Time= %.3f msec, Size= %.0f Ops, WorkgroupSize= %u threads/block\n",
 	 gigaFlops,
 	 msecPerSimulation,
 	 flopsPerSimulation,
-	 block.x * block.y);
+	 p->block.x * p->block.y);
 }
 
 void GpuKernel::executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time) {

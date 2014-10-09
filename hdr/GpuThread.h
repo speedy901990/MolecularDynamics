@@ -6,6 +6,7 @@
 class GpuThread {
  public:
   GpuKernel * kernel;
+  PerformanceStatistics * performance;
   int tid;
 
   GpuThread();
