@@ -107,10 +107,6 @@ int GpuKernel::executeMultiGpu(int deviceCount) {
   for (int i=0 ; i<deviceCount ; i++)
     endThread( threads[i] );
   
-  cout << endl;
-  for (int i=0 ; i<deviceCount ; i++)
-    cout << "AtomsCount tid " << i << ": " << structure[i].atomsCount << endl;
-
   return SUCCESS;
 }
 
@@ -144,7 +140,7 @@ void GpuKernel::executeThreadKernel(int tid) {
   //  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
   //  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
   //  displayPerformanceResults(msecTotal, nIter, block, grid);
-  structure[tid].atomsCount = -1;
+  structure[tid].atomsCount = -1 * tid;
 }
 
 int GpuKernel::executeDisplayOff() {

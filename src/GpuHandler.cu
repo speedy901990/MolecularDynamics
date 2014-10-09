@@ -109,11 +109,12 @@ bool GpuHandler::isVisualizationOn() {
   return visualization;
 }
 
-void GpuHandler::processInputStructure() {
+void GpuHandler::processInputStructure(Structure *&structureToUpdate) {
   if (devicesCount == 1)
     return;
   
   divideStructureForMultiGpu();
+  structureToUpdate = structure;
 }
 
 void GpuHandler::divideStructureForMultiGpu() {
@@ -146,8 +147,9 @@ void GpuHandler::divideStructureForMultiGpu() {
   /*
   for (int devID=0 ; devID<devicesCount ; devID++) {
     printf("Device %d:\n", devID);
+    printf("atomsCount: %d\n", structure[devID].atomsCount);
     for (int i=0 ; i<structure[devID].atomsCount ; i++) {
-      printf("Atom %d:\t\t%f\t%f\t%f\n", i, structure[devID].atoms[i].pos.x, structure[devID].atoms[i].pos.y, structure[devID].atoms[i].pos.z);
+      //printf("Atom %d:\t\t%f\t%f\t%f\n", i, structure[devID].atoms[i].pos.x, structure[devID].atoms[i].pos.y, structure[devID].atoms[i].pos.z);
     }
   }
   */

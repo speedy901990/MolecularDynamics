@@ -1,4 +1,5 @@
 #include "CudaHelpers.h"
+#include "GpuThread.h"
 
 //------------------- Kernels ----------------------------------
 __global__ void atomsStructureTest( Structure * input, Structure * output) {
@@ -139,8 +140,9 @@ void endThread(pthread_t thread) {
     pthread_join(thread, NULL);
 }
 
-void * executeGpuThreadKernel(void * data) {
-
+void * executeGpuThreadKernel(void * threadData) {
+  GpuThread * data = (GpuThread *) threadData;
+  data->kernel->executeThreadKernel(data->tid);
 }
 // Other helper methodes-----------------------------------------------------
 void displayAvailableDevices() {

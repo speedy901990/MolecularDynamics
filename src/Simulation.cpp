@@ -29,7 +29,7 @@ int Simulation::perform() {
 
   cout << "\n--------------- Computing ----------------" << endl << endl;
 
-  GpuHandler::instance()->processInputStructure(); 
+  GpuHandler::instance()->processInputStructure(structure); 
   //exit(EXIT_SUCCESS);
   //GpuHandler::instance()->kernel.allocateDeviceMemory(structure, GpuHandler::instance()->getDevicesCount());
   //GpuHandler::instance()->kernel.sendDataToDevice(structure, GpuHandler::instance()->getDevicesCount());
