@@ -143,6 +143,7 @@ void endThread(pthread_t thread) {
 void * executeGpuThreadKernel(void * threadData) {
   GpuThread * data = (GpuThread *) threadData;
   data->performance = data->kernel->executeThreadKernel(data->tid);
+  printf("%f\n", data->performance->msecTotal);
 }
 // Other helper methodes-----------------------------------------------------
 void displayAvailableDevices() {

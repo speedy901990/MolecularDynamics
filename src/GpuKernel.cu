@@ -151,7 +151,7 @@ PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   
   PerformanceStatistics * performance = new PerformanceStatistics(msecTotal, nIter, block, grid);
   displayPerformanceResults(performance);
-
+  
   return performance;
 }
 
