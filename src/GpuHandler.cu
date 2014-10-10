@@ -32,8 +32,8 @@ int GpuHandler::init(int argc, char ** argv, Structure * &structure) {
 
   printf("[Molecular Dynamics Using CUDA] - Initializing...\n\n");
   
-  //getDevices(devicesID, devicesCount);
-  //displayChosenDevices(devicesID, devicesCount);
+  getDevices(devicesID, devicesCount);
+  displayChosenDevices(devicesID, devicesCount);
 
   if (visualization)
     GpuDisplay::instance()->init(argc, argv, structure);

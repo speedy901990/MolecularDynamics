@@ -181,7 +181,6 @@ void getDevices(int * &devicesID, int &devicesCount) {
   cudaError_t error;
   int devicesLimit;
   error = cudaGetDeviceCount(&devicesLimit);
-  printf("%d\n\n", devicesLimit);
   if (error != cudaSuccess) {
     printf("cudaGetDeviceCount returned error code %d, line(%d)\n", error, __LINE__);
     exit(EXIT_FAILURE);
