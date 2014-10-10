@@ -170,11 +170,11 @@ void displayChosenDevices(int * devicesID, int devicesCount) {
   printf("Chosen devices: %d\n", devicesCount);
 
   for (int i=0 ; i<devicesCount ; i++) {
-        error = cudaGetDeviceProperties(&deviceProp, devicesID[i]);
-        if (error != cudaSuccess)
-            printf("cudaGetDeviceProperties returned error code %d, line(%d)\n", error, __LINE__);
-        printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devicesID[i], deviceProp.name, deviceProp.major, deviceProp.minor);
-    }
+    error = cudaGetDeviceProperties(&deviceProp, i);
+    if (error != cudaSuccess)
+      printf("cudaGetDeviceProperties returned error code %d, line(%d)\n", error, __LINE__);
+    printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", devicesID[i], deviceProp.name, deviceProp.major, deviceProp.minor);
+  }
 }
 
 void getDevices(int * &devicesID, int &devicesCount) {
