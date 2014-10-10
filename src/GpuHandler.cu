@@ -72,7 +72,7 @@ int GpuHandler::parseInputParams() {
   }
   else if (checkCmdLineFlag(argc, (const char **)argv, "devicesCount")) {
     devicesCount = getCmdLineArgumentInt(argc, (const char **)argv, "devicesCount");
-    if (/*devicesCount%2 != 0 && devicesCount != 1*/false) {
+    if (devicesCount%2 != 0 && devicesCount != 1/*false*/) {
       Log::instance()->toConsole(E_INSUFFICIENT_DEVICES_LIMIT, typeid(this).name(), __FUNCTION__, __LINE__, "use 1 or even number of devices\n");
       exit(EXIT_SUCCESS);
     }
