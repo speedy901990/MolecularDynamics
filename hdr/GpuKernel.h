@@ -30,8 +30,7 @@ class GpuKernel {
   void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 
  private:
-  DevMemory devicePtr;
-  DevMemory * multiDevicePtr;
+  DevMemory * devicePtr;
   Structure * structure;
 
   void displayPerformanceResults(PerformanceStatistics *p);
