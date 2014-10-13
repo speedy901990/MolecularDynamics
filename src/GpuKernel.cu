@@ -112,9 +112,9 @@ int GpuKernel::executeMultiGpu(int deviceCount) {
     endThread( threads[i] );
   
   printf("------- TOTAL PERFORMANCE: --------");
-  //TODO FIX segfault
-  //for (int i=0 ; i<deviceCount ; i++)
-  //  displayPerformanceResults(threadsData[i].performance);
+  
+  for (int i=0 ; i<deviceCount ; i++)
+    displayPerformanceResults(threadsData[i].performance);
   
   return SUCCESS;
 }
@@ -137,14 +137,14 @@ PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
   
   handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
-  /*
+  
   for (int i=0 ; i<nIter ; i++) {
     update_structure<<< grid, block >>>(devicePtr[tid].inputAtomsStructure, devicePtr[tid].outputAtomsStructure);
     MD_LJ_kernel<<< grid, block >>>(devicePtr[tid].inputAtomsStructure, devicePtr[i].outputAtomsStructure);
   }
   
   cudaDeviceSynchronize();
-  */
+
   handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
   handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
   handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
@@ -162,7 +162,7 @@ int GpuKernel::executeDisplayOff() {
   int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
   dim3 block(threadsPerBlock, 1, 1);
   dim3 grid(blocksPerGrid, 1, 1);
-  int nIter = 1;
+  int nIter = 100;
   cudaError_t error;
   float msecTotal = 0.0f;
 
@@ -175,8 +175,8 @@ int GpuKernel::executeDisplayOff() {
   handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
 
   for (int i=0 ; i<nIter ; i++) {
-    update_structure<<< grid, block >>>(devicePtr[i].inputAtomsStructure, devicePtr[i].outputAtomsStructure);
-    MD_LJ_kernel<<< grid, block >>>(devicePtr[i].inputAtomsStructure, devicePtr[i].outputAtomsStructure);
+    update_structure<<< grid, block >>>(devicePtr[0].inputAtomsStructure, devicePtr[0].outputAtomsStructure);
+    MD_LJ_kernel<<< grid, block >>>(devicePtr[0].inputAtomsStructure, devicePtr[0].outputAtomsStructure);
   }
 
   cudaDeviceSynchronize();
