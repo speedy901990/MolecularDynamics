@@ -102,7 +102,7 @@ int GpuKernel::executeVisualOff(int deviceCount) {
   for (int i=0 ; i<deviceCount ; i++) {
     threadsData[i].kernel = this;
     threadsData[i].tid = i;
-    threads[i] = startThread(executeGpuThreadKernel, (void *)threadsData);
+    threads[i] = startThread(executeGpuThreadKernel, (void *)(threadsData + i));
   }
   
   for (int i=0 ; i<deviceCount ; i++)
