@@ -133,7 +133,9 @@ void GpuHandler::divideStructureForMultiGpu() {
     newAtomsIdx = 0;
     multiGpuStruct[devID].atoms = new Atom[chunkSize];
     multiGpuStruct[devID].atomsCount = chunkSize;
-
+    multiGpuStruct[devID].dim.x = structure->dim.x;
+    multiGpuStruct[devID].dim.y = structure->dim.y;
+    multiGpuStruct[devID].dim.z = structure->dim.z;
     //printf("start: %d\tend: %d\n", startIdx, endIdx);
 
     for (idx = startIdx ; idx<endIdx ; idx++, newAtomsIdx++) {

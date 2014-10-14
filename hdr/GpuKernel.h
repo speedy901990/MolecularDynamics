@@ -23,9 +23,8 @@ class GpuKernel {
   int execute(Structure * structure, int devicesCount, bool displayOn = true);
   int getDataFromDevice(Structure *&atomsStructure, int devicesCount);
   int clearDeviceMemory(int devicesCount);
-  int executeDisplayOn();
-  int executeDisplayOff();
-  int executeMultiGpu(int deviceCount);
+  int executeVisualOn();
+  int executeVisualOff(int devicesCount);
   PerformanceStatistics * executeThreadKernel(int tid);
   void executeInsideGlutLoop(float4 *pos, unsigned int mesh_width, unsigned int mesh_height, float time);
 

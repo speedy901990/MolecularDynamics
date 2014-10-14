@@ -78,26 +78,23 @@ int GpuKernel::execute(Structure * structure, int devicesCount, bool displayOn) 
   this->structure = structure;
 
   if (displayOn) {
-    executeDisplayOn();
+    executeVisualOn();
   }
   else {
-    if (devicesCount != 1)
-      executeMultiGpu(devicesCount);
-    else
-      executeDisplayOff();
+    executeVisualOff(devicesCount);
     cout << "\t...done!" << endl << flush;
   }
 
   return SUCCESS;
 }
 
-int GpuKernel::executeDisplayOn() {
+int GpuKernel::executeVisualOn() {
   GpuDisplay::instance()->runAnimation(this);
 
   return SUCCESS;
 }
 
-int GpuKernel::executeMultiGpu(int deviceCount) {
+int GpuKernel::executeVisualOff(int deviceCount) {
   
   pthread_t * threads = new pthread_t[deviceCount];
   GpuThread * threadsData = new GpuThread[deviceCount];
@@ -129,7 +126,9 @@ PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   int nIter = 100;
   cudaError_t error;
   float msecTotal = 0.0f;
-  
+
+  cudaSetDevice(tid);
+
   cudaEvent_t start;
   handleTimerError(cudaEventCreate(&start), START_CREATE);
   
@@ -153,42 +152,6 @@ PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   displayPerformanceResults(performance);
   
   return performance;
-}
-
-int GpuKernel::executeDisplayOff() {
-  int mesh_width = structure->dim.x;
-  int mesh_height = structure->dim.y;
-  int threadsPerBlock = 1024;
-  int blocksPerGrid = (mesh_width * mesh_width * mesh_width + threadsPerBlock - 1) / threadsPerBlock;
-  dim3 block(threadsPerBlock, 1, 1);
-  dim3 grid(blocksPerGrid, 1, 1);
-  int nIter = 100;
-  cudaError_t error;
-  float msecTotal = 0.0f;
-
-  cudaEvent_t start;
-  handleTimerError(cudaEventCreate(&start), START_CREATE);
-
-  cudaEvent_t stop;
-  handleTimerError(cudaEventCreate(&stop), STOP_CREATE);
-  
-  handleTimerError(cudaEventRecord(start, NULL), START_RECORD);
-
-  for (int i=0 ; i<nIter ; i++) {
-    update_structure<<< grid, block >>>(devicePtr[0].inputAtomsStructure, devicePtr[0].outputAtomsStructure);
-    MD_LJ_kernel<<< grid, block >>>(devicePtr[0].inputAtomsStructure, devicePtr[0].outputAtomsStructure);
-  }
-
-  cudaDeviceSynchronize();
-
-  handleTimerError(cudaEventRecord(stop, NULL), STOP_RECORD);
-  handleTimerError(cudaEventSynchronize(stop), SYNCHRONIZE);
-  handleTimerError(cudaEventElapsedTime(&msecTotal, start, stop), ELAPSED_TIME);
-
-  PerformanceStatistics * performance = new PerformanceStatistics(msecTotal, nIter, block, grid);
-  displayPerformanceResults(performance);
-  
-  return SUCCESS;
 }
 
 void GpuKernel::displayPerformanceResults(PerformanceStatistics *p) {
