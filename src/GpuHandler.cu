@@ -19,6 +19,7 @@ GpuHandler * GpuHandler::instance() {
 int GpuHandler::init(int argc, char ** argv, Structure * &structure) {
   int ret = SUCCESS;
   visualization = true;
+  this->structure = structure;
 
   this->argc = argc;
   this->argv = argv;
@@ -71,7 +72,7 @@ int GpuHandler::parseInputParams() {
   }
   else if (checkCmdLineFlag(argc, (const char **)argv, "devicesCount")) {
     devicesCount = getCmdLineArgumentInt(argc, (const char **)argv, "devicesCount");
-    if (devicesCount%2 != 0 && devicesCount != 1) {
+    if (devicesCount%2 != 0 && devicesCount != 1/*false*/) {
       Log::instance()->toConsole(E_INSUFFICIENT_DEVICES_LIMIT, typeid(this).name(), __FUNCTION__, __LINE__, "use 1 or even number of devices\n");
       exit(EXIT_SUCCESS);
     }
@@ -84,7 +85,7 @@ int GpuHandler::parseInputParams() {
     devicesCount = 1;
     devicesID = new int[devicesCount];
     devicesID[0] = 0;
-  }
+    }
 
   // visualization
   if (checkCmdLineFlag(argc, (const char **)argv, "noVisual")) {
@@ -106,4 +107,56 @@ void GpuHandler::displayUsageInfo() {
 
 bool GpuHandler::isVisualizationOn() {
   return visualization;
+}
+
+void GpuHandler::processInputStructure(Structure *&structureToUpdate) {
+  if (devicesCount == 1)
+    return;
+  
+  divideStructureForMultiGpu();
+  structureToUpdate = structure;
+}
+
+void GpuHandler::divideStructureForMultiGpu() {
+  Structure * multiGpuStruct = new Structure[devicesCount];
+
+  int chunk = structure->dim.x / devicesCount;
+  int chunkSize = chunk * structure->dim.y * structure->dim.z;
+  int idx = 0;
+  int newAtomsIdx = 0;
+  int startIdx = 0;
+  int endIdx = 0;
+
+  for (int devID=0 ; devID<devicesCount ; devID++) {
+    startIdx = devID * chunk * structure->dim.y * structure->dim.z;
+    endIdx = (devID + 1) * chunk * structure->dim.y * structure->dim.z;
+    newAtomsIdx = 0;
+    multiGpuStruct[devID].atoms = new Atom[chunkSize];
+    multiGpuStruct[devID].atomsCount = chunkSize;
+    multiGpuStruct[devID].dim.x = structure->dim.x;
+    multiGpuStruct[devID].dim.y = structure->dim.y;
+    multiGpuStruct[devID].dim.z = structure->dim.z;
+    //printf("start: %d\tend: %d\n", startIdx, endIdx);
+
+    for (idx = startIdx ; idx<endIdx ; idx++, newAtomsIdx++) {
+      multiGpuStruct[devID].atoms[newAtomsIdx] = structure->atoms[idx];
+    }
+  }
+
+  delete structure;
+  structure = multiGpuStruct;
+
+  /*
+  for (int devID=0 ; devID<devicesCount ; devID++) {
+    printf("Device %d:\n", devID);
+    printf("atomsCount: %d\n", structure[devID].atomsCount);
+    for (int i=0 ; i<structure[devID].atomsCount ; i++) {
+      //printf("Atom %d:\t\t%f\t%f\t%f\n", i, structure[devID].atoms[i].pos.x, structure[devID].atoms[i].pos.y, structure[devID].atoms[i].pos.z);
+    }
+  }
+  */
+}
+
+int GpuHandler::getDevicesCount() {
+  return devicesCount;
 }

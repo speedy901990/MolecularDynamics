@@ -6,11 +6,7 @@
 #include "Structure.h"
 
 //------------------- Kernels ----------------------------------
-__global__ void add( float *x, float *y, float *z, float *result , int size);
-__global__ void multiply( float *x, float *y, float *z, float *result , int size);
 __global__ void atomsStructureTest( Structure * input, Structure * output);
-__global__ void simple_vbo_kernel(float4 *pos, unsigned int width, unsigned int height, float time);
-__global__ void vbo_MD_kernel(float4 *pos, Structure * input, float time);
 __global__ void update_structure(Structure *input, Structure *output);
 __global__ void update_structure_and_display(float4 *pos, Structure *input, Structure *output);
 __global__ void MD_LJ_kernel( Structure *input, Structure *output, float time = 0);
@@ -28,6 +24,7 @@ void HandleError( cudaError_t err, const char *file, int line );
 typedef void *(*CUT_THREADROUTINE)(void *);
 pthread_t startThread(CUT_THREADROUTINE func, void * data);
 void endThread(pthread_t thread);
+void * executeGpuThreadKernel(void * data);
 
 // CUDA Timer event error handler
 enum {
@@ -47,29 +44,6 @@ void getDevices(int * &devicesID, int &devicesCount);
 
 
 /*
-void prepareDeviceInputData(AtomsStructure *hostStructure, AtomsStructure *deviceData, int deviceCount) {
-    for (int i=0 ; i<deviceCount ; i++) {
-        deviceData[i] = AtomsStructure(hostStructure->Size() / deviceCount);
-        deviceData[i].x = hostStructure->x + hostStructure->Size() / deviceCount * i;
-        deviceData[i].y = hostStructure->y + hostStructure->Size() / deviceCount * i;
-        deviceData[i].z = hostStructure->z + hostStructure->Size() / deviceCount * i;
-        deviceData[i].deviceID = i;
-        deviceData[i].result = new float[hostStructure->Size() / deviceCount];
-        deviceData[i].iterN = hostStructure->iterN / deviceCount;
-    }
-}
-
-void mergeResult(float * hostResult, AtomsStructure *deviceData, int deviceCount) {
-    int counter = 0;
-    for (int i=0 ; i<deviceCount; i++)
-        for (int j=0 ; j<deviceData[i].Size(); j++) {
-            hostResult[counter] = deviceData[i].result[j];
-            //printf("%d) %f\t", counter, deviceData[i].result[j]);
-            counter++;
-        }
-    printf("\n");
-}
-
 void * executeKernel(void * threadData) {
     setbuf(stdout, NULL);
     AtomsStructure * data = (AtomsStructure *)threadData;

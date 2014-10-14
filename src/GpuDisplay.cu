@@ -216,7 +216,7 @@ void GpuDisplay::cleanup() {
   if (vbo)
     deleteVBO(&vbo, cuda_vbo_resource);
   
-  kernel->clearDeviceMemory();
+  //kernel->clearDeviceMemory();
 }
 
 void GpuDisplay::keyboard(unsigned char key, int /*x*/, int /*y*/) {
