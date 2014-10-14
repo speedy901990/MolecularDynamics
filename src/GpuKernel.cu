@@ -140,7 +140,7 @@ PerformanceStatistics * GpuKernel::executeThreadKernel(int tid) {
   
   for (int i=0 ; i<nIter ; i++) {
     update_structure<<< grid, block >>>(devicePtr[tid].inputAtomsStructure, devicePtr[tid].outputAtomsStructure);
-    MD_LJ_kernel<<< grid, block >>>(devicePtr[tid].inputAtomsStructure, devicePtr[i].outputAtomsStructure);
+    MD_LJ_kernel<<< grid, block >>>(devicePtr[tid].inputAtomsStructure, devicePtr[tid].outputAtomsStructure);
   }
   
   cudaDeviceSynchronize();

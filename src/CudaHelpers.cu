@@ -193,7 +193,7 @@ void getDevices(int * &devicesID, int &devicesCount) {
 
       // TODO
   for (int i=0 ; i<devicesCount ; i++) {
-    error = cudaSetDevice(devicesID[i]);;
+    error = cudaSetDevice(i);
     if (error != cudaSuccess) {
       printf("cudaSetDevice returned error code, %d, line(%d) - no such device\n", error, __LINE__);
       exit(EXIT_SUCCESS);
